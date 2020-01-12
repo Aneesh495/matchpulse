@@ -1,0 +1,13 @@
+.agent-local/
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+bin/
+runtime/
+data/
+evidence/
+*.db*
+.DS_Store
+*.egg-info/
