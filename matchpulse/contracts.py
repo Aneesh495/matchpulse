@@ -15,7 +15,10 @@ class ContractError(ValueError):
 
 
 def canonical(value: Any) -> str:
-    return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    try:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    except (ValueError, TypeError) as exc:
+        raise ContractError("nonfinite or unserializable value") from exc
 
 
 def digest(value: Any) -> str:
