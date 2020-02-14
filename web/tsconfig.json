@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "ES2022", "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true, "noUncheckedIndexedAccess": true, "outDir": "../dist/assets",
+    "rootDir": "src", "sourceMap": true, "noUnusedLocals": true
+  },
+  "include": ["src/**/*.ts"]
+}

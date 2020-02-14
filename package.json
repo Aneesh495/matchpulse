@@ -1,0 +1,10 @@
+{
+  "name": "matchpulse-terminal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p web/tsconfig.json && node scripts/build-web.mjs",
+    "typecheck": "tsc -p web/tsconfig.json --noEmit"
+  },
+  "devDependencies": { "typescript": "5.9.3" }
+}
