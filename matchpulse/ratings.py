@@ -53,7 +53,7 @@ class PlayerState:
         status = "nonparticipant" if not self.appeared else ("provisional" if not final or m < 15 or not trusted else "final-baseline")
         return {"id": self.id, "name": self.name, "team_id": self.team_id, "role": self.role,
             "minutes": round(m, 4), "active": self.active, "red": self.red,
-            "rating": round(rating, 4) if has_rating else None,
+            "rating": round(rating, 4) if has_rating else None, "delta": None,
             "interval": [round(max(0, rating - radius), 4), round(min(10, rating + radius), 4)] if has_rating else None,
             "contribution": round(self.contribution, 8), "status": status,
             "uncertainty": "Uncalibrated event-only support band; off-ball context unavailable",
