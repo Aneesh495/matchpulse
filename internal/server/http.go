@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -125,7 +126,7 @@ func (s *Server) mutate(op string) http.HandlerFunc {
 			return
 		}
 		var extra any
-		if err := decoder.Decode(&extra); err == nil {
+		if err := decoder.Decode(&extra); err != io.EOF {
 			writeJSON(w, 400, map[string]string{"error": "one JSON object required"})
 			return
 		}
