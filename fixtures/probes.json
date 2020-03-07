@@ -1,0 +1,14 @@
+{
+  "format": "matchpulse-probes-v1",
+  "expected_deliveries": 37,
+  "expected_score": [1, 0],
+  "expected_estimates": 23,
+  "save_player": "demo-p1",
+  "save_contribution": 0.21,
+  "dismissed_player": "demo-p17",
+  "dismissal_minutes": 33.3333,
+  "unused_player": "demo-p24",
+  "retracted_goal": "goal-var",
+  "expected_rating_model": "contribution-context-v1",
+  "expected_value_model": "synthetic-persistence-residual-v1"
+}
