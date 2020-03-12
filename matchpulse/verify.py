@@ -1,5 +1,6 @@
 """Independent bundle audit. Saved status booleans are not acceptance evidence."""
 from __future__ import annotations
+from datetime import datetime
 import hashlib
 import json
 import math
@@ -73,7 +74,7 @@ def verify(directory:Path,source:Path,expected_commit:str)->dict:
             referenced=[e for e in latest.values() if e['event_id']==value['event_id'] and e['revision']==value['revision']]
             require(len(referenced)==1,'action references future or unknown event revision')
             e=referenced[0]
-            require(e['received_at']==value['known_at'],'feature known-at provenance mismatch')
+            require(datetime.fromisoformat(e['received_at'])==datetime.fromisoformat(value['known_at']),'feature known-at provenance mismatch')
             if e['kind']=='pass':
                 # The declared reference only sees actual score and man advantage before this action.
                 order=sorted([x for x in latest.values() if x['kind']!='retract' and x['event_id'] not in retracted],key=lambda x:(x['period'],x['second'],x['ordinal'],x['event_id']))
