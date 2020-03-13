@@ -42,7 +42,6 @@ def main():
                 for row in rows:Deal.parse(row)
                 print(canonical(dict(status='passed',records=len(rows),scope='schema invariants only')))
             else:
-                from .demo import later_deal
                 d=Deal.parse(later_deal());print(canonical(dict(status='passed',scope='synthetic demonstration only',target='guaranteed conditional consideration',guaranteed=d.guaranteed,addons_upper=d.addons_upper)))
             return
         s=Store(':memory:' if a.command=='demo' else a.db);engine=Engine(s);engine.seed(packet())
