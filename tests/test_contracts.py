@@ -35,3 +35,9 @@ class Contracts(unittest.TestCase):
     def test_received_clock(self):
         with self.assertRaises(ContractError):
             event(published_at="2024-01-01T12:00:03Z")
+
+class OutcomeContracts(unittest.TestCase):
+    def test_missing_outcome_is_distinct_from_malformed(self):
+        event(payload={"x":30,"y":40})
+        with self.assertRaises(ContractError):event(payload={"success":"false"})
+        with self.assertRaises(ContractError):event(kind="lineup",second=20,payload={"role":"CM"})

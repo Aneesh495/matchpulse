@@ -116,7 +116,9 @@ class Engine:
 
     def deal(self, raw: dict) -> dict:
         d=Deal.parse(raw)
-        self.s.source(d.source_id)
+        source = self.s.source(d.source_id)
+        if source["mode"] != d.mode:
+            raise ContractError("transaction source mode mismatch")
         if not self.s.db.execute("SELECT 1 FROM persons WHERE id=?",(d.person_id,)).fetchone():
             raise ContractError("deal needs canonical person")
         with self.s.transaction():

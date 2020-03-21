@@ -118,6 +118,11 @@ class Envelope:
             finite(e.payload["xg"], 0, 1, "xg")
             if not e.payload.get("xg_definition"):
                 raise ContractError("xG needs a model definition")
+        for key in ("success", "starter", "interrupted"):
+            if key in e.payload and type(e.payload[key]) is not bool:
+                raise ContractError(f"{key} must be a boolean")
+        if e.kind == "lineup" and (e.period != 1 or e.second != 0):
+            raise ContractError("lineup assertions must precede play")
         if e.kind in {"role", "lineup"} and e.payload.get("role") not in ROLES:
             raise ContractError("role required")
         if e.kind == "retract":

@@ -13,6 +13,8 @@ from .numerics import atomic_json
 
 
 def controls(bundle:Path,source:Path,commit:str,out:Path)->dict:
+    from .verify import verify
+    verify(bundle,source,commit)
     reports=[]
     out.mkdir(parents=True,exist_ok=False)
     def rewrite(path:Path,value):path.write_text(canonical(value)+'\n')
@@ -46,6 +48,7 @@ def controls(bundle:Path,source:Path,commit:str,out:Path)->dict:
             report=dict(case=name,argv=[arg.replace(str(case),'<mutated-bundle>') for arg in cmd],returncode=p.returncode,stdout=p.stdout,stderr=p.stderr,rehashed=name!='corruption')
             reports.append(report)
             atomic_json(out/(name+'.json'),report)
-            if p.returncode==0:raise RuntimeError('verifier accepted negative control '+name)
+            reasons={'forged-feed-freshness':'forged feed freshness','undisclosed-as-fee':'fee replaced an undisclosed amount','future-event-feature':'event-then-future feature leakage','wrong-value-model':'wrong valuation model ID','missing-artifact':'missing required execution artifact','failed-replay':'saved-engine bounded replay differs','corruption':'artifact checksum mismatch','source-mismatch':'source mismatch'}
+            if p.returncode==0 or reasons[name] not in p.stderr:raise RuntimeError('negative control failed to reject for its intended semantic reason: '+name)
     result=dict(status='passed',rejected=len(reports),reports=reports)
     atomic_json(out/'REPORT.json',result);return result
