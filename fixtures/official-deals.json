@@ -1,0 +1,41 @@
+{
+  "scope": "Two manually checked source observations. No linked event corpus or training eligibility is claimed.",
+  "checked_on": "2026-11-11",
+  "records": [
+    {
+      "id": "juventus-koopmeiners-20240828",
+      "person_id": "official-koopmeiners",
+      "kind": "permanent",
+      "disclosure": "exact",
+      "effective_at": "2024-08-28T00:00:00Z",
+      "known_at": "2024-08-28T23:59:59.999999Z",
+      "publication_precision": "day-conservative",
+      "currency": "EUR",
+      "guaranteed": 51300000,
+      "lower": null,
+      "upper": null,
+      "addons_upper": 6000000,
+      "ancillary_costs": 3400000,
+      "source_url": "https://www.juventus.com/images/image/private/fl_attachment/dev/tjgrao8qrtwkpmpmzyne.pdf",
+      "source_id": "juventus-official",
+      "mode": "archive"
+    },
+    {
+      "id": "ajax-antony-20220901",
+      "person_id": "official-antony",
+      "kind": "permanent",
+      "disclosure": "exact",
+      "effective_at": "2022-09-01T00:00:00Z",
+      "known_at": "2022-09-01T23:59:59.999999Z",
+      "publication_precision": "day-conservative",
+      "currency": "EUR",
+      "guaranteed": 95000000,
+      "lower": null,
+      "upper": null,
+      "addons_upper": 5000000,
+      "source_url": "https://english.ajax.nl/articles/transfer-antony-matheus-dos-santos-completed/",
+      "source_id": "ajax-official",
+      "mode": "archive"
+    }
+  ]
+}
