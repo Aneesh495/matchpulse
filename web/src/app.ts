@@ -114,7 +114,7 @@ function pause(){playing=false;if(timer)clearTimeout(timer);timer=null;}
 async function inspect(id:string){inspected=id;history=null;render();document.getElementById('close-drawer')?.focus();try{history=await api<History>(`players/${encodeURIComponent(id)}/history`);render();document.getElementById('close-drawer')?.focus();}catch(e){error=(e as Error).message;render();}}
 function closeDrawer(){const old=inspected;inspected=null;history=null;render();document.querySelector<HTMLElement>(`[data-player="${CSS.escape(old??'')}"]`)?.focus();}
 function bind(){
- document.querySelectorAll<HTMLElement>('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view!;filter='';render();document.getElementById('main')?.focus();});
+ document.querySelectorAll<HTMLElement>('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view!;filter='';render();window.scrollTo({top:0});document.getElementById('main')?.focus({preventScroll:true});});
  document.querySelectorAll<HTMLElement>('[data-side]').forEach(b=>b.onclick=()=>{side=b.dataset.side!;render();});
  document.querySelectorAll<HTMLElement>('[data-player]').forEach(b=>b.onclick=()=>void inspect(b.dataset.player!));
  document.querySelectorAll<HTMLInputElement>('[data-compare]').forEach(b=>b.onchange=()=>{if(b.checked)selectedPlayers.add(b.dataset.compare!);else selectedPlayers.delete(b.dataset.compare!);render();});
@@ -141,7 +141,7 @@ function connect(){
  source.addEventListener('open',()=>{connection='Connected';render();});
  source.addEventListener('error',()=>{connection='Reconnecting';render();});
  source.addEventListener('recovery',event=>{state=JSON.parse((event as MessageEvent).data) as State;render();});
- source.addEventListener('update',event=>{const record=JSON.parse((event as MessageEvent).data);if(!state||record.seq<=state.seq)return;state.seq=record.seq;if(record.kind==='snapshot'){const m=record.data as Match;state.matches=state.matches.map(old=>old.id===m.id?m:old);}if(record.kind==='ticker'||record.kind==='transaction'){void api<State>('state').then(s=>{state=s;render();}).catch(()=>{connection='Reconnecting';render();});}else render();});
+ source.addEventListener('update',event=>{const record=JSON.parse((event as MessageEvent).data);if(!state||record.seq<=state.seq)return;state.seq=record.seq;if(record.kind==='snapshot'){const m=record.data as Match;state.matches=state.matches.map(old=>old.id===m.id?m:old);}if(record.kind==='ticker'||record.kind==='ticker-retraction'||record.kind==='transaction'){void api<State>('state').then(s=>{state=s;render();}).catch(()=>{connection='Reconnecting';render();});}else render();});
 }
 window.addEventListener('beforeunload',()=>{pause();source?.close();});
 void api<State>('state').then(s=>{state=s;finished=s.ticker.some(e=>e.transactions?.length);render();connect();}).catch(e=>{root.innerHTML=`<div class="offline"><h1>Service unavailable</h1><p>${esc(e.message)}</p><p>Start the Go service with <code>make live-demo</code>, then reload.</p><button id="reload">Retry</button></div>`;document.getElementById('reload')!.onclick=()=>location.reload();});

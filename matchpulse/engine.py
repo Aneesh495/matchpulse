@@ -75,6 +75,16 @@ class Engine:
                     self.s.db.execute("INSERT INTO estimates(person_id,match_id,version,known_at,model_id,body) VALUES(?,?,?,?,?,?)",(p["id"],event.match_id,version,current["known_at"],estimate["model_id"],canonical(estimate)))
                     estimates.append(estimate)
                 stream_seq=self.s.publish("ticker",dict(match_id=event.match_id,version=version,estimates=estimates),event.match_id)
+            elif previous and previous["status"]=="finished":
+                for p in current["players"]:
+                    row=self.s.db.execute("SELECT body FROM estimates WHERE person_id=? AND match_id=? ORDER BY seq DESC LIMIT 1",(p["id"],event.match_id)).fetchone()
+                    if not row:
+                        continue
+                    estimate=json.loads(row[0])
+                    estimate.update(version=version,source_version=version,known_at=current["known_at"],status="unavailable",median=None,interval=None,delta=None,move_probability=None,reason="Match completion retracted or interrupted",attribution=[])
+                    self.s.db.execute("INSERT INTO estimates(person_id,match_id,version,known_at,model_id,body) VALUES(?,?,?,?,?,?)",(p["id"],event.match_id,version,current["known_at"],estimate["model_id"],canonical(estimate)))
+                    estimates.append(estimate)
+                stream_seq=self.s.publish("ticker-retraction",dict(match_id=event.match_id,version=version,estimates=estimates),event.match_id)
             if failpoint=="before-commit":
                 raise RuntimeError("injected failure before commit")
         return dict(duplicate=False,journal_seq=seq,stream_seq=stream_seq,version=version,
