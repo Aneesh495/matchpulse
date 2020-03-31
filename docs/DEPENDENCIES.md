@@ -1,0 +1,9 @@
+# Dependency and license provenance
+
+Python numerical code, journal logic, identity mapping, event contribution, dense derivatives, recurrent backpropagation, censor likelihoods, evaluation and independent checks are authored here. No Touchline source, socceraction implementation, proprietary rating algorithm or pretrained model is imported. The Touchline README was reviewed to retain the distinction between retrospective possession/team research and revised individual/ticker state.
+
+Runtime dependencies are Python's standard library, SQLite supplied with Python, Go's standard library, and browser-native DOM/EventSource/SVG. TypeScript 5.9.3 is a build-time Apache-2.0 dependency pinned in package-lock.json. The package uses setuptools 80.9.0 only if installed through its optional package build route; ordinary commands run the source package directly. Graphviz is a documentation rendering tool, not part of runtime inference.
+
+Ideas are attributed separately from implementation. [Decroos et al.](https://tomdecroos.github.io/reports/kdd19_tomd.pdf) motivate action valuation through score/concede changes. [StatsBomb's OBV exposition](https://blogarchive.statsbomb.com/news/introducing-on-ball-value-obv/) discusses separate attack/defense components and missing off-ball credit. Matchpulse does not reproduce either trained model or claim their reported performance. [FIFA transfer reports](https://inside.fifa.com/transfer-system/transfer-reports) are a prospective aggregate reference, not an acquired player-level transaction dataset.
+
+Source agreements are tracked in [data rights](DATA_RIGHTS.md). The MIT software license excludes third-party data and branding. Authored fictional events can be redistributed. No paywalled feed, scraped rating, logo, video, learned checkpoint or third-party raw data is packaged.
