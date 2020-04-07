@@ -1,0 +1,4 @@
+digraph G { graph [rankdir=TB,bgcolor="white",fontname="Helvetica",label="Bounded requests and stream recovery",labelloc=t,pad=0.3,nodesep=0.3,ranksep=0.4]; node [shape=box,style="rounded,filled",fillcolor="#f1f6e8",color="#7e9568",fontname="Helvetica",fontsize=10,margin="0.15,0.1"]; edge [color="#637b52",fontname="Helvetica",fontsize=9]; calls [label="HTTP callers"]; queue [label="64 admission slots
+503 when full"]; one [label="Serialized domain transaction"]; outbox [label="Monotonic durable outbox"]; clients [label="At most 128 SSE clients
+5 second write deadline"]; recovery [label="Snapshot seq S
+then records with seq > S"]; calls -> queue -> one -> outbox -> clients; clients -> recovery [label="new/future cursor"]; clients -> outbox [label="Last-Event-ID",style=dashed]; }

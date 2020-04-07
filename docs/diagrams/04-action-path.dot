@@ -1,0 +1,4 @@
+digraph G { graph [rankdir=TB,bgcolor="white",fontname="Helvetica",label="One pass to useful output",labelloc=t,pad=0.3,nodesep=0.3,ranksep=0.4]; node [shape=box,style="rounded,filled",fillcolor="#f1f6e8",color="#7e9568",fontname="Helvetica",fontsize=10,margin="0.15,0.1"]; edge [color="#637b52",fontname="Helvetica",fontsize=9]; raw [label="Pass envelope
+x/y + end location + success"]; validate [label="Validate IDs, time, pitch and source"]; journal [label="Append unique provider/event/revision"]; order [label="Select known revisions + retract targets
+order by period / second / ordinal"]; value [label="Score/concede proxy before and after
+no next-action feature"]; exposure [label="Accrue active minutes + shrink"]; publish [label="Snapshot version + durable SSE record"]; inspect [label="Player drawer: reason, source, interval"]; raw -> validate -> journal -> order -> value -> exposure -> publish -> inspect; }

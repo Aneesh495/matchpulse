@@ -1,0 +1,3 @@
+digraph G { graph [rankdir=TB,bgcolor="white",fontname="Helvetica",label="Implemented local deployment",labelloc=t,pad=0.3,nodesep=0.3,ranksep=0.4]; node [shape=box,style="rounded,filled",fillcolor="#f1f6e8",color="#7e9568",fontname="Helvetica",fontsize=10,margin="0.15,0.1"]; edge [color="#637b52",fontname="Helvetica",fontsize=9]; source [label="Pinned source checkout"]; ts [label="npm ci + TypeScript build"]; go [label="Go build"]; python [label="Python 3.13+ source runtime"]; host [label="127.0.0.1:8777
+Go + Python child + SQLite"]; remote [label="External binding requires API token
+production hosting not deployed",fillcolor="#faeee2"]; source -> {ts go python}; {ts go python} -> host; host -> remote [style=dashed,label="separate deployment work"]; }

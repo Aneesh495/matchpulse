@@ -1,0 +1,5 @@
+digraph G { graph [rankdir=TB,bgcolor="white",fontname="Helvetica",label="Contribution and conditional targets",labelloc=t,pad=0.3,nodesep=0.3,ranksep=0.4]; node [shape=box,style="rounded,filled",fillcolor="#f1f6e8",color="#7e9568",fontname="Helvetica",fontsize=10,margin="0.15,0.1"]; edge [color="#637b52",fontname="Helvetica",fontsize=9]; state [label="Current known action state
+location + score + man advantage"]; proxy [label="Declared uncalibrated
+score/concede proxy"]; delta [label="Action delta / shot residual / save residual"]; minutes [label="Active exposure + 30 minute prior"]; rating [label="6 + 2 tanh(shrunk contribution)
+heuristic support band"]; fee [label="Synthetic frozen fee prior + bounded residual"]; observation [label="Actual observation: guaranteed fee
+add-ons and disclosure separate"]; state -> proxy -> delta -> rating; minutes -> rating; rating -> fee [label="post-match diagnostic only"]; observation -> fee [style=dashed,label="separate observation layer, not target substitution"]; }
