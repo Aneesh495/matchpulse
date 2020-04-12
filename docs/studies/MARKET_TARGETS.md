@@ -1,0 +1,7 @@
+# Market target selection
+
+The terminal estimates a transaction quantity under a declared horizon and context, not a quoted spot price. The [deal contract](../../matchpulse/valuation.py) separates reported permanent move probability from guaranteed consideration conditional on a comparable move. Add-ons depend on future conditions, wages remunerate employment, ancillary costs are not guaranteed consideration to the selling club, and loan fees concern a different registration transaction. Rumors never create labels.
+
+Two official examples expose why this distinction matters. The source-linked [audit packet](../../fixtures/official-deals.json) retains separate guaranteed, optional and ancillary terms. The records are manually checked facts, not a complete transaction universe or blanket acquisition license. Their publication dates lack exact intraday timestamps, so the known-at convention uses the conservative end of day. A model forecast earlier that day cannot use those labels.
+
+The diagnostic neural model has a Bernoulli move head and Gaussian log1p conditional consideration likelihood. It supports interval and one-sided censoring numerically, but does not model all competing permanent/loan risks or a separate free-transfer atom. Synthetic fitting validates gradients and held-out inference only. The served ticker instead uses a frozen fictional prior with a small exposure-shrunk match residual and a visibly synthetic model ID. Real player estimates remain unavailable until a validated model and eligible evidence exist.

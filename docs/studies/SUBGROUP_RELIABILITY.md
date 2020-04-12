@@ -1,0 +1,7 @@
+# Subgroup reliability and retained misses
+
+The three-seed synthetic pilot demonstrates parameter changes, finite gradients, decreasing training objectives and independently reproduced held-out inference. It does not establish real football reliability. The exact protocol and workloads are in [the frozen plan](../EXPERIMENT_PLAN.md). Training data are disjoint from validation and test generator identities, and epochs are fixed before test scoring.
+
+Conditional fee NLL for seeds 11, 29 and 47 was 0.8953, 1.3952 and 1.1575. The exact-disclosure baseline produced 1.2823, 1.3502 and 1.4333 respectively. Seed 29 is worse than its baseline and remains in the report. Averaging away that miss would hide seed sensitivity. Rating diagnostic Brier scores were 0.1854, 0.2110 and 0.2449; there is no empirical reason to generalize those values to actual player ratings.
+
+The report retains per-role score bins and calibration tables with denominators. Sparse bins can be empty and remain null, rather than acquiring invented calibration. Bootstrap resamples independent synthetic sequence/player groups, not repeated predictions from one unit. This captures only the declared synthetic sampling variability. Actual league, age, fee, wealth, minutes and injury subgroups require acquired lawful covariates and enough independent units. G07, G08, G10 and G11 therefore remain blocked or unverified. Negative results and missing subgroup support are part of the evidence, not grounds for rewriting the frozen evaluation protocol.

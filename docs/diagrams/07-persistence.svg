@@ -17,31 +17,25 @@
 <text xml:space="preserve" text-anchor="middle" x="272.93" y="-297.85" font-family="Helvetica,sans-Serif" font-size="10.00">Identity alias</text>
 <text xml:space="preserve" text-anchor="middle" x="272.93" y="-286.6" font-family="Helvetica,sans-Serif" font-size="10.00">valid interval + known&#45;at</text>
 </g>
-<!-- envelope -->
-<g id="node2" class="node">
-<title>envelope</title>
-<path fill="#f1f6e8" stroke="#7e9568" d="M342.6,-237.9C342.6,-237.9 203.25,-237.9 203.25,-237.9 197.25,-237.9 191.25,-231.9 191.25,-225.9 191.25,-225.9 191.25,-213 191.25,-213 191.25,-207 197.25,-201 203.25,-201 203.25,-201 342.6,-201 342.6,-201 348.6,-201 354.6,-207 354.6,-213 354.6,-213 354.6,-225.9 354.6,-225.9 354.6,-231.9 348.6,-237.9 342.6,-237.9"/>
-<text xml:space="preserve" text-anchor="middle" x="272.93" y="-221.2" font-family="Helvetica,sans-Serif" font-size="10.00">Event journal</text>
-<text xml:space="preserve" text-anchor="middle" x="272.93" y="-209.95" font-family="Helvetica,sans-Serif" font-size="10.00">occurrence / publication / receipt</text>
-</g>
-<!-- assertion&#45;&gt;envelope -->
-<g id="edge1" class="edge">
-<title>assertion&#45;&gt;envelope</title>
-<path fill="none" stroke="#637b52" d="M272.93,-277.41C272.93,-269.1 272.93,-258.98 272.93,-249.59"/>
-<polygon fill="#637b52" stroke="#637b52" points="276.43,-249.79 272.93,-239.79 269.43,-249.79 276.43,-249.79"/>
-<text xml:space="preserve" text-anchor="middle" x="308.18" y="-254.1" font-family="Helvetica,sans-Serif" font-size="9.00">canonical person</text>
-</g>
 <!-- tx -->
 <g id="node3" class="node">
 <title>tx</title>
-<path fill="#f1f6e8" stroke="#7e9568" d="M316.73,-170C316.73,-170 229.12,-170 229.12,-170 223.12,-170 217.12,-164 217.12,-158 217.12,-158 217.12,-146 217.12,-146 217.12,-140 223.12,-134 229.12,-134 229.12,-134 316.73,-134 316.73,-134 322.73,-134 328.73,-140 328.73,-146 328.73,-146 328.73,-158 328.73,-158 328.73,-164 322.73,-170 316.73,-170"/>
-<text xml:space="preserve" text-anchor="middle" x="272.93" y="-148.12" font-family="Helvetica,sans-Serif" font-size="10.00">BEGIN IMMEDIATE</text>
+<path fill="#f1f6e8" stroke="#7e9568" d="M316.73,-237.9C316.73,-237.9 229.12,-237.9 229.12,-237.9 223.12,-237.9 217.12,-231.9 217.12,-225.9 217.12,-225.9 217.12,-213.9 217.12,-213.9 217.12,-207.9 223.12,-201.9 229.12,-201.9 229.12,-201.9 316.73,-201.9 316.73,-201.9 322.73,-201.9 328.73,-207.9 328.73,-213.9 328.73,-213.9 328.73,-225.9 328.73,-225.9 328.73,-231.9 322.73,-237.9 316.73,-237.9"/>
+<text xml:space="preserve" text-anchor="middle" x="272.93" y="-216.02" font-family="Helvetica,sans-Serif" font-size="10.00">BEGIN IMMEDIATE</text>
 </g>
-<!-- envelope&#45;&gt;tx -->
-<g id="edge2" class="edge">
-<title>envelope&#45;&gt;tx</title>
-<path fill="none" stroke="#637b52" d="M272.93,-200.57C272.93,-194.7 272.93,-188.03 272.93,-181.57"/>
-<polygon fill="#637b52" stroke="#637b52" points="276.43,-181.92 272.93,-171.92 269.43,-181.92 276.43,-181.92"/>
+<!-- assertion&#45;&gt;tx -->
+<g id="edge1" class="edge">
+<title>assertion&#45;&gt;tx</title>
+<path fill="none" stroke="#637b52" d="M272.93,-277.52C272.93,-269.2 272.93,-259.05 272.93,-249.66"/>
+<polygon fill="#637b52" stroke="#637b52" points="276.43,-249.87 272.93,-239.87 269.43,-249.87 276.43,-249.87"/>
+<text xml:space="preserve" text-anchor="middle" x="308.18" y="-254.1" font-family="Helvetica,sans-Serif" font-size="9.00">canonical person</text>
+</g>
+<!-- envelope -->
+<g id="node2" class="node">
+<title>envelope</title>
+<path fill="#f1f6e8" stroke="#7e9568" d="M342.6,-170.9C342.6,-170.9 203.25,-170.9 203.25,-170.9 197.25,-170.9 191.25,-164.9 191.25,-158.9 191.25,-158.9 191.25,-146 191.25,-146 191.25,-140 197.25,-134 203.25,-134 203.25,-134 342.6,-134 342.6,-134 348.6,-134 354.6,-140 354.6,-146 354.6,-146 354.6,-158.9 354.6,-158.9 354.6,-164.9 348.6,-170.9 342.6,-170.9"/>
+<text xml:space="preserve" text-anchor="middle" x="272.93" y="-154.2" font-family="Helvetica,sans-Serif" font-size="10.00">Event journal</text>
+<text xml:space="preserve" text-anchor="middle" x="272.93" y="-142.95" font-family="Helvetica,sans-Serif" font-size="10.00">occurrence / publication / receipt</text>
 </g>
 <!-- snap -->
 <g id="node4" class="node">
@@ -49,11 +43,11 @@
 <path fill="#f1f6e8" stroke="#7e9568" d="M143.85,-103C143.85,-103 12,-103 12,-103 6,-103 0,-97 0,-91 0,-91 0,-79 0,-79 0,-73 6,-67 12,-67 12,-67 143.85,-67 143.85,-67 149.85,-67 155.85,-73 155.85,-79 155.85,-79 155.85,-91 155.85,-91 155.85,-97 149.85,-103 143.85,-103"/>
 <text xml:space="preserve" text-anchor="middle" x="77.93" y="-81.12" font-family="Helvetica,sans-Serif" font-size="10.00">Immutable match snapshot vN</text>
 </g>
-<!-- tx&#45;&gt;snap -->
+<!-- envelope&#45;&gt;snap -->
 <g id="edge3" class="edge">
-<title>tx&#45;&gt;snap</title>
-<path fill="none" stroke="#637b52" d="M220.67,-133.58C196.19,-125.42 166.82,-115.63 141.1,-107.06"/>
-<polygon fill="#637b52" stroke="#637b52" points="142.36,-103.79 131.76,-103.95 140.14,-110.43 142.36,-103.79"/>
+<title>envelope&#45;&gt;snap</title>
+<path fill="none" stroke="#637b52" d="M219.64,-133.57C195.17,-125.35 165.99,-115.56 140.48,-107"/>
+<polygon fill="#637b52" stroke="#637b52" points="141.83,-103.76 131.23,-103.89 139.6,-110.39 141.83,-103.76"/>
 </g>
 <!-- estimate -->
 <g id="node5" class="node">
@@ -61,11 +55,11 @@
 <path fill="#f1f6e8" stroke="#7e9568" d="M355.73,-103C355.73,-103 190.12,-103 190.12,-103 184.12,-103 178.12,-97 178.12,-91 178.12,-91 178.12,-79 178.12,-79 178.12,-73 184.12,-67 190.12,-67 190.12,-67 355.73,-67 355.73,-67 361.73,-67 367.73,-73 367.73,-79 367.73,-79 367.73,-91 367.73,-91 367.73,-97 361.73,-103 355.73,-103"/>
 <text xml:space="preserve" text-anchor="middle" x="272.93" y="-81.12" font-family="Helvetica,sans-Serif" font-size="10.00">Estimate: person/match/version/model</text>
 </g>
-<!-- tx&#45;&gt;estimate -->
+<!-- envelope&#45;&gt;estimate -->
 <g id="edge4" class="edge">
-<title>tx&#45;&gt;estimate</title>
-<path fill="none" stroke="#637b52" d="M272.93,-133.58C272.93,-127.75 272.93,-121.09 272.93,-114.64"/>
-<polygon fill="#637b52" stroke="#637b52" points="276.43,-114.98 272.93,-104.98 269.43,-114.98 276.43,-114.98"/>
+<title>envelope&#45;&gt;estimate</title>
+<path fill="none" stroke="#637b52" d="M272.93,-133.57C272.93,-127.7 272.93,-121.03 272.93,-114.57"/>
+<polygon fill="#637b52" stroke="#637b52" points="276.43,-114.92 272.93,-104.92 269.43,-114.92 276.43,-114.92"/>
 </g>
 <!-- outbox -->
 <g id="node6" class="node">
@@ -73,11 +67,17 @@
 <path fill="#f1f6e8" stroke="#7e9568" d="M484.48,-103C484.48,-103 401.38,-103 401.38,-103 395.38,-103 389.38,-97 389.38,-91 389.38,-91 389.38,-79 389.38,-79 389.38,-73 395.38,-67 401.38,-67 401.38,-67 484.48,-67 484.48,-67 490.48,-67 496.48,-73 496.48,-79 496.48,-79 496.48,-91 496.48,-91 496.48,-97 490.48,-103 484.48,-103"/>
 <text xml:space="preserve" text-anchor="middle" x="442.93" y="-81.12" font-family="Helvetica,sans-Serif" font-size="10.00">Durable stream seq</text>
 </g>
-<!-- tx&#45;&gt;outbox -->
+<!-- envelope&#45;&gt;outbox -->
 <g id="edge5" class="edge">
-<title>tx&#45;&gt;outbox</title>
-<path fill="none" stroke="#637b52" d="M318.48,-133.58C339.44,-125.57 364.52,-115.98 386.65,-107.52"/>
-<polygon fill="#637b52" stroke="#637b52" points="387.74,-110.85 395.83,-104.01 385.24,-104.31 387.74,-110.85"/>
+<title>envelope&#45;&gt;outbox</title>
+<path fill="none" stroke="#637b52" d="M319.38,-133.57C340.33,-125.5 365.25,-115.91 387.2,-107.46"/>
+<polygon fill="#637b52" stroke="#637b52" points="388.22,-110.81 396.29,-103.95 385.7,-104.28 388.22,-110.81"/>
+</g>
+<!-- tx&#45;&gt;envelope -->
+<g id="edge2" class="edge">
+<title>tx&#45;&gt;envelope</title>
+<path fill="none" stroke="#637b52" d="M272.93,-201.7C272.93,-195.83 272.93,-189.09 272.93,-182.55"/>
+<polygon fill="#637b52" stroke="#637b52" points="276.43,-182.73 272.93,-172.73 269.43,-182.73 276.43,-182.73"/>
 </g>
 <!-- commit -->
 <g id="node7" class="node">

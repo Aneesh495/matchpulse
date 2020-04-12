@@ -1,0 +1,9 @@
+# Model card
+
+Served rating model: `contribution-context-v1`. Type: original deterministic event-only baseline. Intended use: inspecting contribution revisions in a local research replay. Inputs: known event location and outcome, score/man state, active exposure, sourced role and explicit quality definitions. Outputs: contribution, bounded display transform, uncalibrated support band, reason codes and source identity. No training dataset or empirical calibration is claimed for this baseline.
+
+Served valuation model: `synthetic-persistence-residual-v1`. Intended use: fictional post-match ticker mechanics. It uses only a frozen fictional prior and bounded exposure-shrunk residual. The 12% move probability and interval factors are declared diagnostics, not trained actual-data estimates. Real archive players receive unavailable fee outputs. Model promotion and actual-money use are unavailable.
+
+Original learned diagnostics: a masked causal recurrent score/concede model with analytic BPTT, and a dense move-hazard/conditional-fee distribution model with exact and censored likelihoods. All train from random initialization with seeds 11, 29 and 47. CPU binary64 arithmetic, no pretrained weights, no API predictions. Independent inference verification is in [verify_training](../matchpulse/verify_training.py). An adjusted plus-minus ridge utility and frozen marginal/persistence references are diagnostic research components, not production claims.
+
+Known limitations include event attribution choices, missing off-ball context, collinearity, synthetic-only learned validation, uncalibrated support intervals, undisclosed-fee selection, no acquired injury or contract universe, no actual live feed and no Europe registry reconciliation. A production model requires source-specific rights, held-out actual years/windows and clubs/leagues, calibration, three-seed comparison, expert disagreement and failure detection before serving.

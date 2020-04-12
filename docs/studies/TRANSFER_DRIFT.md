@@ -1,0 +1,7 @@
+# Transfer drift and chronology
+
+Transfer windows are repeated changing markets. Nominal fees respond to resources, competition, regulations, contract structures and macroeconomic conditions. An old fee translated with a later exchange rate can leak future information and change the target vintage. [FXVintage](../../matchpulse/valuation.py) therefore rejects a conversion rate published after the forecast cutoff.
+
+The [rolling split utility](../../matchpulse/evaluation.py) assigns observations by window completion and label publication. A late disclosure cannot join a training fold merely because the move occurred before the cutoff. Held-out clubs can be excluded from fit, and repeated-player identities must remain clustered during evaluation. The current utility does not itself freeze or discover a lawful Europe-wide transaction universe; that dependency remains open.
+
+A prospective-like campaign should retain rolling forecast origins, fee bands, youth/minutes groups, unusual transfers and source/destination resources known at each origin. Rumor-driven features must be excluded unless their separate predictive target and rights are explicit. Age, contract time and form associations do not establish that a single match caused a fee change. The terminal's post-match difference is a version-to-version model output, not a causal decomposition. Full inflation, wealth and league drift studies require multiple acquired windows and independently checked conversions. No such actual-data campaign is claimed.

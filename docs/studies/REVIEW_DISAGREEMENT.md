@@ -1,0 +1,7 @@
+# Review disagreement and ranking reliability
+
+No permitted expert clip or independent rating dataset is acquired. Consequently there is no observed inter-rater agreement estimate, blinded clip result or empirical ranking reliability claim. The work does not train against a live reference rating and then reuse it as a judge. A deterministic test agreeing with itself would not solve that evaluation problem.
+
+A future review protocol must freeze clip/event eligibility and remove provider rating overlays, player identity cues where feasible, and model output from the review interface. Reviewers should score the same opportunities independently before discussing disagreements. A disagreement log should distinguish event transcription, tactical interpretation, role assignment and contribution preference. Missing off-ball context can create reasonable disagreement even if the event journal is perfectly transcribed.
+
+The primary units should be matches and reviewed player opportunities, not repeated frames from the same clip. Report rank stability under reviewer resampling, ties within uncertainty bands, and differences by role and exposure. A small overall average can conceal unreliable goalkeeper or substitute rankings. Annotation permission and redistribution scope must be recorded before storing clips. This protocol remains a proposed full-campaign dependency, not completed empirical evidence. Current implemented support is the [explicit status contract](../CONTRACTS.md) and the [frozen experiment boundary](../EXPERIMENT_PLAN.md).

@@ -1,0 +1,7 @@
+# Selective fee disclosure
+
+An undisclosed amount is not zero, and the absence of a transfer is not an observed fee. The [fee tests](../../tests/test_valuation.py) enforce both distinctions. The verifier's undisclosed-amount negative control replaces a missing guarantee with a numerical fee, recomputes ordinary hashes, then requires a semantic rejection. That protects one important relationship that checksums alone cannot defend.
+
+Sold players are selected from a wider roster by sporting demand, contract status, club constraints and negotiations. Disclosure adds another selection process. Exact fees may be more visible for listed clubs, large transactions or certain federations. A conditional model trained only on visible sales therefore does not directly identify the price distribution for all players. Club releases can also disagree about gross/net consideration or include ancillary terms differently.
+
+The censored likelihood retains intervals and unknown bounds without treating a rumor as an exact amount. A fully undisclosed conditional amount contributes no fee-density loss, while a known move can still inform the move-hazard objective. This does not solve non-random disclosure. Sensitivity bounds, subgroup disclosure rates and alternative missingness mechanisms are required for full acceptance. In the synthetic pilot, the fee baseline fits only exact disclosures; the report explicitly preserves that eligibility choice. No actual-data claim follows from beating that diagnostic baseline in two seeds.
