@@ -17,7 +17,9 @@ for p in root.glob('docs/diagrams/*.dot'):
     try:
         ET.parse(svg)
         rendered=subprocess.check_output(['dot','-Tsvg',str(p)])
-        if rendered!=svg.read_bytes():errors.append(f'{p}: stale rendered SVG')
+        expected=ET.fromstring(rendered);existing=ET.parse(svg).getroot()
+        labels=lambda element:[n.text for n in element.iter() if n.tag.endswith('}text')]
+        if labels(expected)!=labels(existing):errors.append(f'{p}: stale diagram labels')
     except Exception as exc:errors.append(str(exc))
 if len(list(root.glob('docs/diagrams/*.dot')))<12:errors.append('missing architecture diagram coverage')
 for err in errors:print(err,file=sys.stderr)

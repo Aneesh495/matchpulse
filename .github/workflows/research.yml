@@ -1,0 +1,33 @@
+name: research-campaign
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Full refuses missing licensed inputs. Diagnostic uses synthetic evidence.
+        type: choice
+        options: [diagnostic, full]
+        default: diagnostic
+permissions:
+  contents: read
+concurrency:
+  group: research-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  campaign:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: make doctor
+      - run: make acceptance RUN_ID=manual-${{ github.run_id }} PROFILE=${{ inputs.profile }}
+      - if: inputs.profile == 'diagnostic'
+        run: make verify EVIDENCE=evidence/manual-${{ github.run_id }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: research-${{ github.run_id }}
+          path: evidence/
+          retention-days: 30
