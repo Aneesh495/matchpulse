@@ -31,8 +31,10 @@ live-demo: build
 	./bin/matchpulse
 valuation-audit:
 	$(PYTHON) -m matchpulse.cli valuation-audit $(if $(INPUT),--input "$(INPUT)",)
-bench stress:
+bench:
 	$(PYTHON) -m matchpulse.cli bench --profile diagnostic --run-id "$(RUN_ID)"
+stress: build
+	$(PYTHON) scripts/http-load.py "$(RUN_ID)"
 acceptance:
 	$(PYTHON) -m matchpulse.cli acceptance --profile "$(PROFILE)" --run-id "$(RUN_ID)"
 verify:

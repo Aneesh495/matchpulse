@@ -10,6 +10,7 @@ root=Path(__file__).resolve().parents[1];sys.path.insert(0,str(root))
 from matchpulse.resources import guard
 p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a=p.parse_args()
 guard(root,50_000_000)
+if subprocess.run(['git','diff','--quiet','HEAD','--'],cwd=root).returncode:raise SystemExit('commit source changes before packaging')
 if not (root/'dist/index.html').exists():raise SystemExit('run make build first')
 a.output.parent.mkdir(parents=True,exist_ok=True)
 files=subprocess.check_output(['git','ls-files'],cwd=root,text=True).splitlines()
