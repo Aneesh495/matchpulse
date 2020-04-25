@@ -1,0 +1,13 @@
+# Benchmark method and pilot findings
+
+All numbers here are synthetic CPU diagnostics. They do not measure upstream feed latency, actual match quality, Europe-wide coverage or fee forecast readiness. Workloads and stopping rules are frozen in [the experiment plan](EXPERIMENT_PLAN.md). There are no downloaded learned weights and no paid resources.
+
+The engineering pilot `engineering-pilot-v1`, executable source `93f5b0a4f68ddf25eaff597f1b42eb3eb67f9ba5`, reduced 37 deliveries for each of 16 interleaved fixtures. Raw per-delivery processing included retractions and revisions. p95 normalization-to-domain-commit processing was 1.3653 ms, against 250 ms. The final independent score was 1 to 0, with 23 eligible estimates and exact state equality after restart. Eight negative controls rejected for their intended reasons. These pilot numbers are not final-source acceptance.
+
+The loopback HTTP pilot `http-pilot-v1`, source `d955af2ebe89bda808aab2c868f260a72e2f9fcf`, used 16 concurrent request callers, 592 normalized deliveries and eight reconnecting stream clients. p95 client roundtrip was 25.4123 ms. This includes local HTTP, admission and serialized Python work, and is distinct from the Python core processing measurement. It is not a network or real provider freshness SLO. Every fixture finished at version 37 and score 1 to 0.
+
+The diagnostic training pilot used seeds 11, 29 and 47 and completed in approximately 1.03 seconds on the local arm64 CPU. Fee conditional NLL was 0.8953, 1.3952 and 1.1575 versus exact-disclosure baseline 1.2823, 1.3502 and 1.4333. The worse seed remains visible. The independent training verifier recomputed saved dense/recurrent inference and losses. Dataset, model state, optimizer and RNG files live in the evidence bundle. They are synthetic, with no real-forecast interpretation.
+
+Run new measurements with new IDs. Do not overwrite pilot inputs or update a protocol after viewing a failure. Backend processing measures time from normalized Python ingestion entry through committed publication. HTTP roundtrip measures client request start through complete JSON response. Neither includes provider acquisition lag. The p95 is the nearest-rank statistic at ceil(0.95 N), independently recomputed by the verifier from raw observations.
+
+The reference load is bounded and short. It does not demonstrate a full 90-minute soak, long-history incremental complexity, extended provider outage behavior or large distributed fan-out. The current reducer recomputes an affected fixture on each delivery. Long-history cost, checkpoint invalidation, source backpressure and 1x/20x archived actual-data campaigns remain open work.
