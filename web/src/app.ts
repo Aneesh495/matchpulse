@@ -18,6 +18,7 @@ let revision:Match|null=null;
 let inspected:string|null=null;
 let history:History|null=null;
 let source:EventSource|null=null;
+let inspectorAbort:AbortController|null=null;
 let timer:ReturnType<typeof setTimeout>|null=null;
 
 const esc=(value:unknown)=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
@@ -29,8 +30,8 @@ const icon=(name:string)=>{
  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]??paths.pulse}</svg>`;
 };
 
-async function api<T>(path:string,body?:unknown):Promise<T>{
- const response=await fetch(`/api/${path}`,body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+async function api<T>(path:string,body?:unknown,signal?:AbortSignal):Promise<T>{
+ const response=await fetch(`/api/${path}`,body===undefined?{signal}:{signal,method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
  if(!response.ok){const info=await response.json().catch(()=>({error:response.statusText}));throw new Error(info.error??'Request failed');}
  return response.json() as Promise<T>;
 }
@@ -43,6 +44,7 @@ function render(){
  const m=match();
  const oldFocus=document.activeElement as HTMLElement|null;
  const focusId=oldFocus?.id;
+ const focusKey=oldFocus?.dataset.player?`[data-player="${CSS.escape(oldFocus.dataset.player)}"].${CSS.escape(oldFocus.classList.item(0)??"player-link")}`:oldFocus?.dataset.compare?`[data-compare="${CSS.escape(oldFocus.dataset.compare)}"]`:null;
  const selection=oldFocus instanceof HTMLInputElement?[oldFocus.selectionStart,oldFocus.selectionEnd]:null;
  root.innerHTML=`<aside class="sidebar"><a href="#" class="brand" aria-label="Matchpulse home"><span class="brand-icon">${icon('pulse')}</span>matchpulse<span class="brand-dot">.</span></a><div class="workspace"><span class="workspace-badge">MP</span><span>Research workspace<small>Local edition</small></span><span class="tiny">⌄</span></div><div class="nav-label">WORKSPACE</div><nav aria-label="Main navigation">${navButton('match','Match centre','grid')}${navButton('ticker','Transfer terminal','chart')}${navButton('coverage','Coverage','globe')}${navButton('method','Method & provenance','book')}</nav><div class="sidebar-bottom"><div class="research-note">Built for the questions<br>behind the score.<span>Event contribution. With context.</span></div><div class="profile"><span class="avatar">R</span><span>Research session<small>No live feed connected</small></span></div></div></aside>
  <div class="shell"><header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>${esc({match:'Match centre',ticker:'Transfer terminal',coverage:'Coverage',method:'Method & provenance'}[view])}</strong></div><div class="connection"><i class="${connection==='Connected'?'online':''}"></i>${esc(connection)}<span class="local-badge">LOCAL</span></div></header>
@@ -52,7 +54,7 @@ function render(){
  <footer><span>Matchpulse Research <span class="footer-dot">•</span> As known, then corrected.</span><span>Stream ${state.seq} <span class="footer-dot">•</span> Live-data gate blocked</span></footer></main></div>
  ${inspected&&m?drawer(m):''}`;
  bind();
- if(focusId){const target=document.getElementById(focusId);target?.focus({preventScroll:true});if(target instanceof HTMLInputElement&&selection)target.setSelectionRange(selection[0]??0,selection[1]??0);}
+ if(focusId||focusKey){const target=focusId?document.getElementById(focusId):document.querySelector<HTMLElement>(focusKey!);target?.focus({preventScroll:true});if(target instanceof HTMLInputElement&&selection)target.setSelectionRange(selection[0]??0,selection[1]??0);}
 }
 
 function matchView(m:Match){
@@ -111,8 +113,8 @@ async function doStep(finish=false){
  finally{busy=false;render();if(playing)timer=setTimeout(()=>void doStep(),450);}
 }
 function pause(){playing=false;if(timer)clearTimeout(timer);timer=null;}
-async function inspect(id:string){inspected=id;history=null;render();document.getElementById('close-drawer')?.focus();try{history=await api<History>(`players/${encodeURIComponent(id)}/history`);render();document.getElementById('close-drawer')?.focus();}catch(e){error=(e as Error).message;render();}}
-function closeDrawer(){const old=inspected;inspected=null;history=null;render();document.querySelector<HTMLElement>(`[data-player="${CSS.escape(old??'')}"]`)?.focus();}
+async function inspect(id:string){inspectorAbort?.abort();const controller=new AbortController();inspectorAbort=controller;inspected=id;history=null;render();document.getElementById('close-drawer')?.focus();try{const result=await api<History>(`players/${encodeURIComponent(id)}/history`,undefined,controller.signal);if(controller.signal.aborted||inspected!==id)return;history=result;render();}catch(e){if(controller.signal.aborted)return;error=(e as Error).message;render();}}
+function closeDrawer(){inspectorAbort?.abort();inspectorAbort=null;const old=inspected;inspected=null;history=null;render();document.querySelector<HTMLElement>(`[data-player="${CSS.escape(old??'')}"]`)?.focus();}
 function bind(){
  document.querySelectorAll<HTMLElement>('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view!;filter='';render();window.scrollTo({top:0});document.getElementById('main')?.focus({preventScroll:true});});
  document.querySelectorAll<HTMLElement>('[data-match]').forEach(b=>b.onclick=()=>{selected=b.dataset.match!;revision=null;side='all';selectedPlayers.clear();render();});
