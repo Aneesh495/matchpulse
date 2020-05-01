@@ -30,6 +30,7 @@ jobs:
       - run: make acceptance RUN_ID=ci-engineering PROFILE=diagnostic
       - run: make verify EVIDENCE=evidence/ci-engineering
       - run: make negative-controls EVIDENCE=evidence/ci-engineering RUN_ID=ci-controls
+      - run: make stress RUN_ID=ci-http
       - run: make train RUN_ID=ci-training
       - run: python3 -m matchpulse.verify_training evidence/ci-training
       - run: python3 scripts/package.py --output evidence/matchpulse-diagnostic.tar.gz
