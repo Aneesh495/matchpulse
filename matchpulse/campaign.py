@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import resource
 import statistics
 import subprocess
 import sys
@@ -40,7 +41,9 @@ def campaign(root:Path,out:Path,profile:str='diagnostic')->dict:
     (out/'COMMANDS.jsonl').write_text(canonical(dict(argv=sys.argv,profile=profile,started_ns=time.time_ns()))+'\n')
     if profile=='full':
         result=dict(profile='full',status='blocked',failed=[],blocked=['G01 lawful large data and coverage','G07 learned actual-data rating campaign','G10 actual transaction rolling calibration','G13 licensed live fixture','Europe-wide roster reconciliation','independent expert review'],actual_matches=0,actual_transactions=0)
-        atomic_json(out/'ACCEPTANCE.json',result);seal(out)
+        atomic_json(out/'ACCEPTANCE.json',result)
+        with (out/'COMMANDS.jsonl').open('a') as log:log.write(canonical(dict(completed_ns=time.time_ns(),exit_code=2,status='blocked'))+'\n')
+        seal(out)
         return result
     if profile!='diagnostic':raise ContractError('unknown campaign profile')
     events=deliveries();atomic_json(out/'PACKET.json',packet())
@@ -65,8 +68,10 @@ def campaign(root:Path,out:Path,profile:str='diagnostic')->dict:
     for i in range(16):
         p=copy.deepcopy(packet());p['fixtures'][0]['id']=f'load-{i}'
         interleaved.seed(p);fixture_ids.append(f'load-{i}')
-    stress_rows=[]
+    stress_rows=[];resource_samples=[]
     for event in events:
+        usage=resource.getrusage(resource.RUSAGE_SELF)
+        resource_samples.append(dict(event_id=event['event_id'],monotonic_ns=time.monotonic_ns(),max_rss_bytes=usage.ru_maxrss*(1 if sys.platform=='darwin' else 1024),user_cpu_seconds=usage.ru_utime,system_cpu_seconds=usage.ru_stime))
         for mid in fixture_ids:
             adapted={**event,'match_id':mid}
             result=interleaved.ingest(adapted);times.append(result['processing_ms'])
@@ -80,6 +85,8 @@ def campaign(root:Path,out:Path,profile:str='diagnostic')->dict:
         source_commit=source['commit'],required_event_count=37,final_score=before['matches'][0]['score'],ticker_estimates=len(before['ticker']),
         limitations=['serialized bounded recomputation, not optimized incremental state','no genuine live fixture','no large actual-data campaign','no empirical rating calibration'])
     atomic_json(out/'ACCEPTANCE.json',result)
+    (out/'RESOURCE_SAMPLES.jsonl').write_text(''.join(canonical(v)+'\n' for v in resource_samples))
+    with (out/'COMMANDS.jsonl').open('a') as log:log.write(canonical(dict(completed_ns=time.time_ns(),exit_code=0 if result['status']=='passed' else 2,status=result['status']))+'\n')
     atomic_json(out/'REQUIREMENTS.json',dict(G03='diagnostic replay exercised',G04='diagnostic rollback and restart exercised',G06='baseline only',G12='diagnostic ticker exercised',G13='blocked',G14='diagnostic backend load; browser concurrent resume verified separately'))
     seal(out)
     return result

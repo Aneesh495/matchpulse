@@ -30,7 +30,7 @@ def verify(directory:Path,source:Path,expected_commit:str)->dict:
     files=list(directory.rglob('*'))
     require(len(files)<=100 and sum(p.stat().st_size for p in files if p.is_file())<=100_000_000,'evidence resource bound exceeded')
     manifest=json_file(directory/'MANIFEST.json')['files']
-    required={'SOURCE_INPUTS.json','DATASETS.json','ENVIRONMENT.json','COMMANDS.jsonl','ACCEPTANCE.json','PACKET.json','DELIVERIES.jsonl','SNAPSHOTS.jsonl','OBSERVATIONS.jsonl','LOAD.jsonl','FINAL.json','TRANSACTIONS.json','REQUIREMENTS.json'}
+    required={'SOURCE_INPUTS.json','DATASETS.json','ENVIRONMENT.json','COMMANDS.jsonl','ACCEPTANCE.json','PACKET.json','DELIVERIES.jsonl','SNAPSHOTS.jsonl','OBSERVATIONS.jsonl','LOAD.jsonl','FINAL.json','TRANSACTIONS.json','REQUIREMENTS.json','RESOURCE_SAMPLES.jsonl'}
     require(required.issubset(manifest),'missing required execution artifact')
     actual={str(p.relative_to(directory)) for p in files if p.is_file() and p.name!='MANIFEST.json'}
     require(set(manifest)==actual,'manifest file set mismatch')
@@ -107,6 +107,10 @@ def verify(directory:Path,source:Path,expected_commit:str)->dict:
     require(len(observations)==len(events),'missing processing observations')
     for row in observations:
         require(row['mode']=='synthetic' and row['upstream_age_seconds'] is None,'forged feed freshness')
+    commands=rows(directory/'COMMANDS.jsonl')
+    require(len(commands)==2 and commands[-1]['exit_code']==0,'missing or failed command execution')
+    samples=rows(directory/'RESOURCE_SAMPLES.jsonl')
+    require(len(samples)==37 and all(r['max_rss_bytes']>0 for r in samples),'missing resource observations')
     load=rows(directory/'LOAD.jsonl')
     require(len(load)==16*37,'incomplete concurrent fixture workload')
     require(len({r['match_id'] for r in load})==16,'load fixture denominator mismatch')
