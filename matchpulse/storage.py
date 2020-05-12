@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS model_registry(id TEXT PRIMARY KEY,body TEXT NOT NULL
 
 
 class Store:
-    def __init__(self, path: str | Path):
+    def __init__(self, path: str | Path, max_bytes: int = 512_000_000):
         self.path = str(path)
         if self.path != ":memory:":
             Path(path).parent.mkdir(parents=True, exist_ok=True)
@@ -59,6 +59,15 @@ class Store:
         version = self.db.execute("PRAGMA user_version").fetchone()[0]
         if version not in (0, 1):
             raise ContractError(f"unsupported schema version {version}")
+        page_size=self.db.execute("PRAGMA page_size").fetchone()[0]
+        if type(max_bytes) is not int or max_bytes < page_size*32:
+            self.db.close()
+            raise ContractError("database budget is too small for schema")
+        pages=max_bytes//page_size
+        actual=self.db.execute(f"PRAGMA max_page_count={pages}").fetchone()[0]
+        if actual>pages:
+            self.db.close()
+            raise ContractError("existing database exceeds configured storage cap")
         self.db.executescript(SCHEMA)
         self.db.execute("PRAGMA user_version=1")
         for table in ("journal", "snapshots", "stream", "estimates", "identity_audit", "aliases", "registrations", "deals"):
@@ -75,7 +84,8 @@ class Store:
             yield
             self.db.execute("COMMIT")
         except BaseException:
-            self.db.execute("ROLLBACK")
+            if self.db.in_transaction:
+                self.db.execute("ROLLBACK")
             raise
 
     def source(self, source_id: str) -> dict:

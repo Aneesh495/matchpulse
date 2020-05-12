@@ -47,3 +47,15 @@ class Journal(unittest.TestCase):
         self.assertEqual(len(s.events("m1", "2024-01-01T23:59:59Z")), 1)
         self.assertEqual(len(s.events("m1")), 2)
         s.close()
+
+class StorageBudget(unittest.TestCase):
+    def test_full_database_preserves_transaction_boundary(self):
+        s=Store(':memory:',max_bytes=256000)
+        with self.assertRaises(sqlite3.OperationalError):
+            with s.transaction():
+                for i in range(100):
+                    s.db.execute('INSERT INTO metadata VALUES(?,?)',(str(i),'x'*10000))
+        self.assertFalse(s.db.in_transaction)
+        self.assertEqual(s.db.execute('SELECT count(*) FROM metadata').fetchone()[0],0)
+        with s.transaction():s.db.execute("INSERT INTO metadata VALUES('recovered','true')")
+        s.close()
