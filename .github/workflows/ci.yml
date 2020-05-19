@@ -24,16 +24,6 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-      - name: Ensure Graphviz is available
-        timeout-minutes: 2
-        run: |
-          if command -v dot >/dev/null 2>&1; then
-            dot -V
-            exit 0
-          fi
-          sudo timeout 40s apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=10 -o Acquire::https::Timeout=10 update || true
-          sudo timeout 60s apt-get -o Acquire::Retries=0 -o Acquire::http::Timeout=10 -o Acquire::https::Timeout=10 install -y --no-install-recommends graphviz
-          dot -V
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: make build test docs
       - run: make acceptance RUN_ID=ci-engineering PROFILE=diagnostic

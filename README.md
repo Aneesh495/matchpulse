@@ -11,7 +11,7 @@ make test
 make live-demo
 ```
 
-Open `http://127.0.0.1:8777`. Requires Python 3.13+, Go 1.25 and Node 24. Graphviz is needed for `make docs`. No external feed, paid service or downloaded model is needed for the authored replay. Linux CI exercises the same Python/Go integration.
+Open `http://127.0.0.1:8777`. Requires Python 3.13+, Go 1.25 and Node 24. `make docs` uses pinned WebAssembly Graphviz installed by bootstrap. No external feed, paid service or downloaded model is needed for the authored replay. Linux CI exercises the same Python/Go integration.
 
 ![Running Matchpulse terminal with explicitly synthetic replay](docs/screenshots/match-desktop.png)
 
