@@ -247,8 +247,11 @@ func (s *Server) export(w http.ResponseWriter, r *http.Request) {
 		for i, k := range keys {
 			if row[k] != nil {
 				cells[i] = fmt.Sprint(row[k])
-				if strings.ContainsAny(cells[i][:min(1, len(cells[i]))], "=+@-") {
-					cells[i] = "'" + cells[i]
+				if text, ok := row[k].(string); ok {
+					trimmed := strings.TrimLeft(text, " \t\r\n")
+					if len(trimmed) > 0 && strings.ContainsAny(trimmed[:1], "=+@-") {
+						cells[i] = "'" + text
+					}
 				}
 			}
 		}

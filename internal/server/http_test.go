@@ -143,3 +143,24 @@ func TestTokenProtectsReadAndWrites(t *testing.T) {
 		t.Fatal("valid token rejected")
 	}
 }
+
+type csvStub struct{}
+
+func (csvStub) Call(ctx context.Context, op string, args any) (json.RawMessage, error) {
+	return json.RawMessage(`[{"person_id":"p1","name":"  =SUM(1,2)","delta":-2.5,"median":50,"mode":"synthetic"}]`), nil
+}
+func TestCSVPreservesNumericSignAndEscapesFormulaText(t *testing.T) {
+	h := (&Server{Engine: csvStub{}, Assets: t.TempDir()}).Handler()
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest("GET", "/api/export.csv", nil))
+	records, err := csv.NewReader(w.Body).ReadAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if records[1][1] != "'  =SUM(1,2)" {
+		t.Fatalf("formula text: %q", records[1][1])
+	}
+	if records[1][10] != "-2.5" {
+		t.Fatalf("numeric delta became text: %q", records[1][10])
+	}
+}
