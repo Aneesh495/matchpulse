@@ -17,7 +17,7 @@
 | G11 | blocked | Frozen diagnostic references and retained worse seed | Preregistered actual-data superiority and failure detection |
 | G12 | passed for authored local profile | Completed/corrected estimates, exact zero changes, unavailable retractions, separate sale | Validated model for actual-player publication |
 | G13 | blocked | No actual licensed source configured | Authorized actual live fixture capture |
-| G14 | unverified | 16 fixtures, 592 deliveries, 8 HTTP SSE reconnects | Long-duration source backpressure, freshness traces and production load |
+| G14 | unverified, with a retained failed HTTP profile | 16 fixtures, 592 deliveries, 8 HTTP SSE reconnects; [shared Linux miss](CI_FINDINGS.md) | Resolve isolated writer/queue stalls; long-duration source backpressure, freshness traces and production load |
 | G15 | unverified | Desktop/mobile inspection, keyboard dialog, search, compare, revisions, CSV | Broader assistive-technology and deployed-service verification |
 | G16 | passed for frozen local probes | Four semantic and four structural controls, exact-source replay | Extend controls to actual learned model promotion |
 
