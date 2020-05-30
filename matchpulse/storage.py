@@ -42,6 +42,14 @@ CREATE TABLE IF NOT EXISTS estimates(
  version INTEGER NOT NULL,known_at TEXT NOT NULL,model_id TEXT NOT NULL,body TEXT NOT NULL,
  UNIQUE(person_id,match_id,version,model_id));
 CREATE TABLE IF NOT EXISTS deals(id TEXT PRIMARY KEY,person_id TEXT NOT NULL,known_at TEXT NOT NULL,body TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS context_assertions(
+ seq INTEGER PRIMARY KEY AUTOINCREMENT,id TEXT NOT NULL,revision INTEGER NOT NULL,
+ person_id TEXT NOT NULL REFERENCES persons(id),kind TEXT NOT NULL,known_at TEXT NOT NULL,
+ valid_from TEXT NOT NULL,valid_to TEXT,source_id TEXT NOT NULL REFERENCES sources(id),
+ body TEXT NOT NULL,UNIQUE(id,revision));
+CREATE INDEX IF NOT EXISTS context_person_time ON context_assertions(person_id,known_at,revision);
+CREATE INDEX IF NOT EXISTS estimate_person_time ON estimates(person_id,known_at,seq);
+CREATE INDEX IF NOT EXISTS deal_person_time ON deals(person_id,known_at);
 CREATE TABLE IF NOT EXISTS model_registry(id TEXT PRIMARY KEY,body TEXT NOT NULL);
 """
 
@@ -57,7 +65,7 @@ class Store:
         self.db.execute("PRAGMA journal_mode=WAL")
         self.db.execute("PRAGMA synchronous=FULL")
         version = self.db.execute("PRAGMA user_version").fetchone()[0]
-        if version not in (0, 1):
+        if version not in (0, 1, 2):
             raise ContractError(f"unsupported schema version {version}")
         page_size=self.db.execute("PRAGMA page_size").fetchone()[0]
         if type(max_bytes) is not int or max_bytes < page_size*32:
@@ -69,8 +77,8 @@ class Store:
             self.db.close()
             raise ContractError("existing database exceeds configured storage cap")
         self.db.executescript(SCHEMA)
-        self.db.execute("PRAGMA user_version=1")
-        for table in ("journal", "snapshots", "stream", "estimates", "identity_audit", "aliases", "registrations", "deals"):
+        self.db.execute("PRAGMA user_version=2")
+        for table in ("journal", "snapshots", "stream", "estimates", "identity_audit", "aliases", "registrations", "deals", "context_assertions"):
             for action in ("UPDATE", "DELETE"):
                 self.db.execute(f"CREATE TRIGGER IF NOT EXISTS immutable_{table}_{action} BEFORE {action} ON {table} BEGIN SELECT RAISE(ABORT,'append-only table'); END")
 

@@ -5,6 +5,7 @@ import json
 import time
 from .contracts import ContractError, Envelope, canonical, identifier, instant
 from .identity import Identity
+from .context import ContextLedger
 from .ratings import RatingReducer
 from .storage import Store
 from .valuation import Deal, diagnostic_estimate
@@ -14,6 +15,7 @@ class Engine:
     def __init__(self, store: Store):
         self.s = store
         self.identity = Identity(store)
+        self.context = ContextLedger(store)
 
     def seed(self, packet: dict) -> dict:
         with self.s.transaction():
@@ -31,6 +33,10 @@ class Engine:
                 if existing and existing[0] != canonical(fixture):
                     raise ContractError("fixture identifier collision")
                 self.s.db.execute("INSERT OR IGNORE INTO fixtures VALUES(?,?)",(fixture["id"],canonical(fixture)))
+            for person in packet.get("persons", []):
+                self.identity.add_person(person)
+            for fact in packet.get("context", []):
+                self.context.append(fact)
         return {"fixtures": len(packet.get("fixtures", []))}
 
     def ingest(self, raw: dict, failpoint: str | None = None) -> dict:
@@ -123,6 +129,12 @@ class Engine:
     def history(self, person_id: str) -> dict:
         return dict(estimates=[json.loads(r[0]) for r in self.s.db.execute("SELECT body FROM estimates WHERE person_id=? ORDER BY seq",(person_id,))],
             transactions=[json.loads(r[0]) for r in self.s.db.execute("SELECT body FROM deals WHERE person_id=? ORDER BY known_at",(person_id,))])
+
+    def append_context(self, raw: dict) -> dict:
+        with self.s.transaction():
+            inserted = self.context.append(raw)
+            seq = self.s.publish("context", {"person_id": raw["person_id"], "fact_id": raw["id"], "revision": raw["revision"]}) if inserted else None
+        return dict(duplicate=not inserted, seq=seq)
 
     def deal(self, raw: dict) -> dict:
         d=Deal.parse(raw)
