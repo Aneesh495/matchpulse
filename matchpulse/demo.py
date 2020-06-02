@@ -19,7 +19,17 @@ def packet() -> dict:
     for i,(name,role) in enumerate(names):
         players.append(dict(id=f"demo-p{i+1}",name=name,role=role,team_id="harbor" if i<12 else "athletic",
             birth_date=f"{1997+i%7}-03-12",country=None,synthetic_prior_eur=round((3+(i*7)%34)*1e6)))
-    return dict(sources=[dict(id="authored-cc0",mode="synthetic",name="Authored Matchpulse diagnostic fixture",terms_url="https://creativecommons.org/publicdomain/zero/1.0/",redistribution=True,freshness_seconds=None,acquired_at=BASE.isoformat())],
+    context=[]
+    for p in players:
+        context.append(dict(id="registration-"+p["id"],revision=1,person_id=p["id"],kind="registration",
+            valid_from=BASE.isoformat(),valid_to=None,known_at=BASE.isoformat(),source_id="authored-cc0",
+            source_url="https://example.org/fictional-roster",confidence=1.0,
+            details=dict(team_id=p["team_id"],registration_kind="active")))
+    context.append(dict(id="contract-demo-p9",revision=1,person_id="demo-p9",kind="contract",
+        valid_from=BASE.isoformat(),valid_to="2027-06-30T00:00:00Z",known_at=BASE.isoformat(),source_id="authored-cc0",
+        source_url="https://example.org/fictional-contract",confidence=1.0,
+        details=dict(team_id="harbor",expires_at="2027-06-30T00:00:00Z")))
+    return dict(context=context,sources=[dict(id="authored-cc0",mode="synthetic",name="Authored Matchpulse diagnostic fixture",terms_url="https://creativecommons.org/publicdomain/zero/1.0/",redistribution=True,freshness_seconds=None,acquired_at=BASE.isoformat())],
         fixtures=[dict(id=MATCH_ID,home_id="harbor",away_id="athletic",home="Harbor FC",away="Athletic Union",competition="Research exhibition",date="2024-06-08",mode="synthetic",trusted=False,players=players)])
 
 

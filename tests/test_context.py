@@ -35,3 +35,15 @@ class Context(unittest.TestCase):
         c.append(contract(id='conflicting-contract',details=dict(team_id='t2',expires_at='2025-01-01T00:00:00Z')))
         self.assertIn('contract',c.view('p1','2024-06-01T00:00:00Z','2024-06-01T00:00:00Z')['conflicts'])
         self.assertEqual(c.view('p1','2025-01-01T00:00:00Z','2025-01-01T00:00:00Z')['facts'],[]);s.close()
+
+class ContextImport(unittest.TestCase):
+    def test_packet_atomicity_and_idempotence(self):
+        from matchpulse.engine import Engine
+        s=store();e=Engine(s)
+        bad=contract(id='bad',person_id='unknown')
+        with self.assertRaises(ContractError):e.seed({'context':[contract(),bad]},publish_context=True)
+        self.assertEqual(s.db.execute('SELECT count(*) FROM context_assertions').fetchone()[0],0)
+        self.assertEqual(s.stream(),[])
+        e.seed({'context':[contract()]},publish_context=True)
+        e.seed({'context':[contract()]},publish_context=True)
+        self.assertEqual(len(s.stream()),1);s.close()

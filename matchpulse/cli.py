@@ -17,13 +17,22 @@ from .campaign import campaign
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('command',choices=['doctor','demo','ingest','replay','train','acceptance','valuation-audit','bench','data','release'])
+    p=argparse.ArgumentParser();p.add_argument('command',choices=['doctor','demo','import','ingest','replay','train','acceptance','valuation-audit','bench','data','release'])
     p.add_argument('--db',default='runtime/matchpulse.db');p.add_argument('--input',type=Path)
     p.add_argument('--run-id');p.add_argument('--profile',default='diagnostic',choices=['diagnostic','full']);p.add_argument('--speed',type=float,default=20)
     a=p.parse_args();root=Path.cwd()
     try:
         if a.command=='doctor':print(canonical(doctor(root)));return
         guard(root,30_000_000)
+        if a.command=='import':
+            if a.input is None or a.input.stat().st_size > 10_000_000:
+                raise ContractError('import requires an input packet no larger than 10 MB')
+            s=Store(a.db)
+            try:
+                result=Engine(s).seed(json.loads(a.input.read_text()),publish_context=True)
+                print(canonical(result))
+            finally:s.close()
+            return
         if a.command=='train':
             rid=identifier(a.run_id or time.strftime('train-%Y%m%d-%H%M%S'))
             report=train_diagnostic(root/'evidence'/rid);print(canonical(report));return

@@ -17,7 +17,8 @@ class Engine:
         self.identity = Identity(store)
         self.context = ContextLedger(store)
 
-    def seed(self, packet: dict) -> dict:
+    def seed(self, packet: dict, publish_context: bool = False) -> dict:
+        context_inserted = 0
         with self.s.transaction():
             for source in packet.get("sources", []):
                 existing=self.s.db.execute("SELECT * FROM sources WHERE id=?", (source["id"],)).fetchone()
@@ -36,8 +37,11 @@ class Engine:
             for person in packet.get("persons", []):
                 self.identity.add_person(person)
             for fact in packet.get("context", []):
-                self.context.append(fact)
-        return {"fixtures": len(packet.get("fixtures", []))}
+                inserted = self.context.append(fact)
+                context_inserted += inserted
+                if inserted and publish_context:
+                    self.s.publish("context", {"person_id": fact["person_id"], "fact_id": fact["id"], "revision": fact["revision"]})
+        return {"fixtures": len(packet.get("fixtures", [])), "context_inserted": context_inserted}
 
     def ingest(self, raw: dict, failpoint: str | None = None) -> dict:
         start=time.perf_counter()
@@ -113,7 +117,18 @@ class Engine:
     def matches(self) -> list[dict]:
         return [self.match(r[0]) for r in self.s.db.execute("SELECT id FROM fixtures ORDER BY id")]
 
-    def ticker(self, cutoff: str | None = None) -> list[dict]:
+    def knowledge_clock(self) -> str:
+        clocks = [r[0] for r in self.s.db.execute("SELECT MAX(received_at) FROM journal UNION ALL SELECT MAX(known_at) FROM deals UNION ALL SELECT MAX(known_at) FROM context_assertions UNION ALL SELECT MAX(acquired_at) FROM sources") if r[0]]
+        return max(map(instant, clocks), default="1970-01-01T00:00:00.000000+00:00")
+
+    @staticmethod
+    def freshness(estimate: dict, clock: str) -> dict:
+        age = max(0.0, (datetime.fromisoformat(instant(clock)) - datetime.fromisoformat(instant(estimate["known_at"]))).total_seconds())
+        state = "unavailable" if estimate["median"] is None else "historical" if estimate["mode"] in {"synthetic", "archive"} else "stale" if age > 7*86400 else "fresh"
+        return dict(state=state, age_seconds=age, evaluated_at=instant(clock), threshold_seconds=7*86400,
+            policy="Declared seven-day display policy; not a calibrated trading signal")
+
+    def ticker(self, cutoff: str | None = None, evaluated_at: str | None = None) -> list[dict]:
         query="SELECT * FROM estimates"
         args=[]
         if cutoff:
@@ -121,14 +136,31 @@ class Engine:
         results={}
         for r in self.s.db.execute(query+" ORDER BY seq DESC",args):
             results.setdefault(r["person_id"],json.loads(r["body"]))
+        clock = instant(evaluated_at or cutoff or self.knowledge_clock())
         for p,result in results.items():
             deals=self.s.db.execute("SELECT body FROM deals WHERE person_id=?"+(" AND known_at<=?" if cutoff else "")+" ORDER BY known_at",(p,instant(cutoff)) if cutoff else (p,))
             result["transactions"]=[json.loads(d[0]) for d in deals]
+            result["freshness"] = self.freshness(result, clock)
         return list(results.values())
 
-    def history(self, person_id: str) -> dict:
-        return dict(estimates=[json.loads(r[0]) for r in self.s.db.execute("SELECT body FROM estimates WHERE person_id=? ORDER BY seq",(person_id,))],
-            transactions=[json.loads(r[0]) for r in self.s.db.execute("SELECT body FROM deals WHERE person_id=? ORDER BY known_at",(person_id,))])
+    def history(self, person_id: str, cutoff: str | None = None, valid_at: str | None = None) -> dict:
+        identifier(person_id)
+        args = [person_id]
+        condition = ""
+        if cutoff:
+            condition = " AND known_at<=?"; args.append(instant(cutoff))
+        estimates = [json.loads(r[0]) for r in self.s.db.execute("SELECT body FROM estimates WHERE person_id=?"+condition+" ORDER BY seq", args)]
+        transactions = [json.loads(r[0]) for r in self.s.db.execute("SELECT body FROM deals WHERE person_id=?"+condition+" ORDER BY known_at",args)]
+        clock = instant(cutoff or self.knowledge_clock())
+        for estimate in estimates:
+            estimate["freshness"] = self.freshness(estimate, clock)
+        return dict(person_id=person_id, as_of=cutoff, estimates=estimates, transactions=transactions,
+            context=self.context.view(person_id, valid_at or clock, clock))
+
+    def compare(self, person_ids: list[str], cutoff: str | None = None) -> dict:
+        if not isinstance(person_ids, list) or not 1 <= len(person_ids) <= 3 or len(set(person_ids)) != len(person_ids):
+            raise ContractError("comparison requires one to three distinct people")
+        return dict(as_of=cutoff, players=[self.history(p, cutoff) for p in person_ids])
 
     def append_context(self, raw: dict) -> dict:
         with self.s.transaction():

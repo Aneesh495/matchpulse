@@ -21,6 +21,8 @@ data:
 	$(PYTHON) -m matchpulse.cli data
 demo:
 	$(PYTHON) -m matchpulse.cli demo
+import:
+	$(PYTHON) -m matchpulse.cli import --input "$(INPUT)"
 ingest:
 	$(PYTHON) -m matchpulse.cli ingest $(if $(INPUT),--input "$(INPUT)",)
 replay:

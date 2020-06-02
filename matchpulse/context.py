@@ -80,7 +80,7 @@ class ContextLedger:
     def append(self, raw: dict) -> bool:
         fact = ContextFact.parse(raw)
         source = self.s.source(fact.source_id)
-        if fact.known_at < source['acquired_at']:
+        if fact.known_at < instant(source['acquired_at']):
             raise ContractError('context knowledge predates source acquisition')
         if not self.s.db.execute('SELECT 1 FROM persons WHERE id=?', (fact.person_id,)).fetchone():
             raise ContractError('context needs a canonical person')
