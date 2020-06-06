@@ -113,6 +113,25 @@ func TestActualWorkerReplayCSVAndReconnect(t *testing.T) {
 	if !found {
 		t.Fatal("durable resume omitted sequence 41")
 	}
+	resp, err = http.Get(server.URL + "/api/players/demo-p9/history?as_of=2024-06-08T20:01:51Z")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var historical map[string]json.RawMessage
+	json.NewDecoder(resp.Body).Decode(&historical)
+	resp.Body.Close()
+	if string(historical["transactions"]) != "[]" {
+		t.Fatal("future sale leaked into as-of history")
+	}
+	resp, err = http.Get(server.URL + "/api/compare?ids=demo-p1,demo-p9")
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != 200 || !strings.Contains(string(raw), `"context"`) {
+		t.Fatal("comparison lacks sourced context")
+	}
 	worker.stop()
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -147,7 +166,7 @@ func TestTokenProtectsReadAndWrites(t *testing.T) {
 type csvStub struct{}
 
 func (csvStub) Call(ctx context.Context, op string, args any) (json.RawMessage, error) {
-	return json.RawMessage(`[{"person_id":"p1","name":"  =SUM(1,2)","delta":-2.5,"median":50,"mode":"synthetic"}]`), nil
+	return json.RawMessage(`[{"person_id":"p1","name":"  =SUM(1,2)","delta":-2.5,"median":50,"mode":"synthetic","interval":[20,80],"prior_interval":[25,75],"source_version":37,"freshness":{"state":"historical","age_seconds":50}}]`), nil
 }
 func TestCSVPreservesNumericSignAndEscapesFormulaText(t *testing.T) {
 	h := (&Server{Engine: csvStub{}, Assets: t.TempDir()}).Handler()
@@ -159,6 +178,9 @@ func TestCSVPreservesNumericSignAndEscapesFormulaText(t *testing.T) {
 	}
 	if records[1][1] != "'  =SUM(1,2)" {
 		t.Fatalf("formula text: %q", records[1][1])
+	}
+	if records[1][13] != "20" || records[1][16] != "75" || records[1][17] != "37" {
+		t.Fatal("missing bounds or provenance", records[1])
 	}
 	if records[1][10] != "-2.5" {
 		t.Fatalf("numeric delta became text: %q", records[1][10])

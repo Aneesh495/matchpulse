@@ -35,6 +35,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("GET /api/matches", s.query("matches"))
 	mux.HandleFunc("GET /api/coverage", s.query("coverage"))
 	mux.HandleFunc("GET /api/ticker", s.query("ticker"))
+	mux.HandleFunc("GET /api/compare", s.query("compare"))
 	mux.HandleFunc("GET /api/matches/{id}", s.query("match"))
 	mux.HandleFunc("GET /api/players/{id}/history", s.query("history"))
 	mux.HandleFunc("GET /api/events", s.events)
@@ -42,6 +43,7 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("POST /api/replay/step", s.mutate("step"))
 	mux.HandleFunc("POST /api/ingest", s.mutate("ingest"))
 	mux.HandleFunc("POST /api/deals", s.mutate("deal"))
+	mux.HandleFunc("POST /api/context", s.mutate("context"))
 	mux.Handle("/", http.FileServer(http.Dir(s.Assets)))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -110,6 +112,14 @@ func (s *Server) query(op string) http.HandlerFunc {
 		}
 		if t := r.URL.Query().Get("as_of"); t != "" {
 			args["as_of"] = t
+		}
+		for _, key := range []string{"valid_at", "evaluated_at"} {
+			if value := r.URL.Query().Get(key); value != "" {
+				args[key] = value
+			}
+		}
+		if op == "compare" {
+			args["ids"] = strings.Split(r.URL.Query().Get("ids"), ",")
 		}
 		s.call(w, r, op, args)
 	}
@@ -226,7 +236,13 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request) {
 func (s *Server) export(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
-	data, err := s.Engine.Call(ctx, "ticker", map[string]any{})
+	args := map[string]any{}
+	for _, key := range []string{"as_of", "evaluated_at"} {
+		if value := r.URL.Query().Get(key); value != "" {
+			args[key] = value
+		}
+	}
+	data, err := s.Engine.Call(ctx, "ticker", args)
 	if err != nil {
 		writeJSON(w, 500, map[string]string{"error": err.Error()})
 		return
@@ -240,9 +256,20 @@ func (s *Server) export(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", "attachment; filename=matchpulse-estimates.csv")
 	writer := csv.NewWriter(w)
 	defer writer.Flush()
-	keys := []string{"person_id", "name", "match_id", "version", "known_at", "model_id", "mode", "status", "currency", "median", "delta", "move_probability", "target"}
+	keys := []string{"person_id", "name", "match_id", "version", "known_at", "model_id", "mode", "status", "currency", "median", "delta", "move_probability", "target", "interval_low", "interval_high", "prior_interval_low", "prior_interval_high", "source_version", "rating_model_id", "price_vintage", "horizon", "reason", "freshness_state", "freshness_age_seconds", "freshness_evaluated_at"}
 	writer.Write(keys)
 	for _, row := range rows {
+		for _, field := range []string{"interval", "prior_interval"} {
+			if bounds, ok := row[field].([]any); ok && len(bounds) == 2 {
+				row[field+"_low"] = bounds[0]
+				row[field+"_high"] = bounds[1]
+			}
+		}
+		if freshness, ok := row["freshness"].(map[string]any); ok {
+			row["freshness_state"] = freshness["state"]
+			row["freshness_age_seconds"] = freshness["age_seconds"]
+			row["freshness_evaluated_at"] = freshness["evaluated_at"]
+		}
 		cells := make([]string, len(keys))
 		for i, k := range keys {
 			if row[k] != nil {
