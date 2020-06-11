@@ -2,7 +2,7 @@
 from __future__ import annotations
 import math
 import random
-from .contracts import ContractError
+from .contracts import ContractError,finite
 from .numerics import Adam,bernoulli
 from .ratings import sigmoid
 
@@ -58,3 +58,15 @@ class Temporal:
     def state(self)->dict:
         return dict(kind="masked-temporal-v1",inputs=self.inputs,hidden=self.hidden,seed=self.seed,
             parameters=list(self.parameters),optimizer=dict(m=list(self.optimizer.m),v=list(self.optimizer.v),step=self.optimizer.step,rate=self.optimizer.rate))
+
+    @classmethod
+    def restore(cls,raw:dict)->Temporal:
+        if not isinstance(raw,dict) or raw.get('kind')!='masked-temporal-v1' or any(type(raw.get(k)) is not int for k in ('inputs','hidden','seed')):
+            raise ContractError('invalid temporal checkpoint kind or shape')
+        model=cls(raw['inputs'],raw['hidden'],raw['seed'])
+        params=raw.get('parameters')
+        if not isinstance(params,list) or len(params)!=len(model.parameters):
+            raise ContractError('invalid temporal parameter shape')
+        model.parameters=[finite(v,-1e12,1e12,'temporal parameter') for v in params]
+        model.optimizer=Adam.restore(raw.get('optimizer'),len(params))
+        return model

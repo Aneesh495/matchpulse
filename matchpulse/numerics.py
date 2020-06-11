@@ -5,6 +5,7 @@ import math
 import os
 from pathlib import Path
 import random
+import tempfile
 from .contracts import ContractError, canonical, finite
 from .ratings import sigmoid
 
@@ -64,6 +65,22 @@ class Adam:
             parameters[i]-=self.rate*corrected_m/(math.sqrt(corrected_v)+1e-8)
         return norm
 
+    def state(self) -> dict:
+        return dict(m=list(self.m), v=list(self.v), step=self.step, rate=self.rate)
+
+    @classmethod
+    def restore(cls, raw: dict, size: int) -> Adam:
+        if not isinstance(raw, dict) or not isinstance(raw.get('m'), list) or not isinstance(raw.get('v'), list):
+            raise ContractError('invalid optimizer checkpoint')
+        if len(raw['m']) != size or len(raw['v']) != size or type(raw.get('step')) is not int or not 0 <= raw['step'] <= 1000000000:
+            raise ContractError('invalid optimizer shape or step')
+        rate=finite(raw.get('rate'),1e-8,1.0,'learning rate')
+        model=cls(size,rate)
+        model.m=[finite(v,-1e12,1e12,'first moment') for v in raw['m']]
+        model.v=[finite(v,0,1e12,'second moment') for v in raw['v']]
+        model.step=raw['step']
+        return model
+
 
 class Dense:
     def __init__(self, inputs: int, hidden: int, outputs: int, seed: int):
@@ -107,25 +124,27 @@ class Dense:
 
     def state(self)->dict:
         return dict(kind="dense-tanh-v1",inputs=self.inputs,hidden=self.hidden,outputs=self.outputs,seed=self.seed,
-            parameters=self.parameters,optimizer=dict(m=self.optimizer.m,v=self.optimizer.v,step=self.optimizer.step,rate=self.optimizer.rate))
+            parameters=list(self.parameters),optimizer=self.optimizer.state())
 
     @classmethod
     def restore(cls,raw:dict)->Dense:
-        model=cls(raw["inputs"],raw["hidden"],raw["outputs"],raw["seed"])
-        params=raw["parameters"]
-        if len(params)!=len(model.parameters) or any(not math.isfinite(p) for p in params):
-            raise ContractError("invalid checkpoint parameters")
-        model.parameters=list(params)
-        state=raw["optimizer"]
-        if len(state["m"])!=len(params) or len(state["v"])!=len(params):raise ContractError("invalid optimizer shape")
-        model.optimizer.m=list(state["m"]);model.optimizer.v=list(state["v"])
-        model.optimizer.step=state["step"];model.optimizer.rate=state["rate"]
+        if not isinstance(raw,dict) or raw.get('kind')!='dense-tanh-v1' or any(type(raw.get(k)) is not int for k in ('inputs','hidden','outputs','seed')):
+            raise ContractError('invalid dense checkpoint kind or shape')
+        model=cls(raw['inputs'],raw['hidden'],raw['outputs'],raw['seed'])
+        params=raw.get('parameters')
+        if not isinstance(params,list) or len(params)!=len(model.parameters):
+            raise ContractError('invalid checkpoint parameters')
+        model.parameters=[finite(v,-1e12,1e12,'model parameter') for v in params]
+        model.optimizer=Adam.restore(raw.get('optimizer'),len(params))
         return model
 
 
 def atomic_json(path:Path,value:dict)->None:
     path.parent.mkdir(parents=True,exist_ok=True)
-    temp=path.with_name(path.name+".tmp")
-    with temp.open("x") as out:
-        out.write(canonical(value)+"\n");out.flush();os.fsync(out.fileno())
-    os.replace(temp,path)
+    descriptor,temp=tempfile.mkstemp(prefix=path.name+'.',suffix='.tmp',dir=path.parent)
+    try:
+        with os.fdopen(descriptor,'w') as out:
+            out.write(canonical(value)+'\n');out.flush();os.fsync(out.fileno())
+        os.replace(temp,path)
+    finally:
+        if os.path.exists(temp):os.unlink(temp)

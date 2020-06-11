@@ -19,7 +19,7 @@ from .campaign import campaign
 def main():
     p=argparse.ArgumentParser();p.add_argument('command',choices=['doctor','demo','import','ingest','replay','train','acceptance','valuation-audit','bench','data','release'])
     p.add_argument('--db',default='runtime/matchpulse.db');p.add_argument('--input',type=Path)
-    p.add_argument('--run-id');p.add_argument('--profile',default='diagnostic',choices=['diagnostic','full']);p.add_argument('--speed',type=float,default=20)
+    p.add_argument('--resume',action='store_true');p.add_argument('--run-id');p.add_argument('--profile',default='diagnostic',choices=['diagnostic','full']);p.add_argument('--speed',type=float,default=20)
     a=p.parse_args();root=Path.cwd()
     try:
         if a.command=='doctor':print(canonical(doctor(root)));return
@@ -34,8 +34,9 @@ def main():
             finally:s.close()
             return
         if a.command=='train':
+            if a.resume and not a.run_id:raise ContractError('resume requires --run-id')
             rid=identifier(a.run_id or time.strftime('train-%Y%m%d-%H%M%S'))
-            report=train_diagnostic(root/'evidence'/rid);print(canonical(report));return
+            report=train_diagnostic(root/'evidence'/rid,resume=a.resume);print(canonical(report));return
         if a.command in {'acceptance','bench'}:
             if not a.run_id:raise ContractError('--run-id is required; evidence directories never collide')
             rid=identifier(a.run_id);report=campaign(root,root/'evidence'/rid,a.profile)

@@ -28,7 +28,7 @@ ingest:
 replay:
 	$(PYTHON) -m matchpulse.cli replay --speed $(or $(SPEED),20) $(if $(INPUT),--input "$(INPUT)",)
 train:
-	$(PYTHON) -m matchpulse.cli train $(if $(RUN_ID),--run-id "$(RUN_ID)",)
+	$(PYTHON) -m matchpulse.cli train $(if $(RUN_ID),--run-id "$(RUN_ID)",) $(if $(RESUME),--resume,)
 live-demo: build
 	./bin/matchpulse
 valuation-audit:
