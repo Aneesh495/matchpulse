@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"time"
 )
 
 var ErrBusy = errors.New("engine request queue is full")
@@ -107,6 +108,7 @@ func (w *Worker) Close() {
 }
 
 func (w *Worker) Call(ctx context.Context, op string, args any) (json.RawMessage, error) {
+	queuedAt := time.Now()
 	select {
 	case w.slots <- struct{}{}:
 	default:
@@ -118,6 +120,8 @@ func (w *Worker) Call(ctx context.Context, op string, args any) (json.RawMessage
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+	queueMS := float64(time.Since(queuedAt).Nanoseconds()) / 1e6
+	rpcAt := time.Now()
 	defer func() { <-w.gate }()
 	if err := w.start(); err != nil {
 		return nil, err
@@ -137,6 +141,15 @@ func (w *Worker) Call(ctx context.Context, op string, args any) (json.RawMessage
 	case reply := <-w.replies:
 		if !reply.OK {
 			return nil, fmt.Errorf("%s: %s", reply.Code, reply.Error)
+		}
+		if op == "ingest" {
+			rpcMS := float64(time.Since(rpcAt).Nanoseconds()) / 1e6
+			var result map[string]json.RawMessage
+			if err := json.Unmarshal(reply.Data, &result); err != nil {
+				return nil, err
+			}
+			result["transport"], _ = json.Marshal(map[string]float64{"queue_ms": queueMS, "worker_roundtrip_ms": rpcMS})
+			return json.Marshal(result)
 		}
 		return reply.Data, nil
 	case err := <-w.failures:

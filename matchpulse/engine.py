@@ -47,16 +47,22 @@ class Engine:
         start=time.perf_counter()
         event=Envelope.parse(raw)
         with self.s.transaction():
+            append_started=time.perf_counter()
             seq, inserted=self.s.append(event)
+            append_ms=(time.perf_counter()-append_started)*1000
             if not inserted:
                 return {"duplicate":True,"journal_seq":seq,"snapshot":self.s.latest(event.match_id)}
             if failpoint == "after-journal":
                 raise RuntimeError("injected failure after journal append")
+            read_started=time.perf_counter()
             fixture=self.s.fixture(event.match_id)
             events=self.s.events(event.match_id)
             if len(events)>50000:
                 raise ContractError("match journal capacity exceeded")
+            read_ms=(time.perf_counter()-read_started)*1000
+            reduce_started=time.perf_counter()
             current=RatingReducer(fixture).run(events)
+            reduce_ms=(time.perf_counter()-reduce_started)*1000
             previous=self.s.latest(event.match_id)
             version=1 if previous is None else previous["version"]+1
             current.update(version=version,journal_seq=seq)
@@ -98,7 +104,8 @@ class Engine:
             if failpoint=="before-commit":
                 raise RuntimeError("injected failure before commit")
         return dict(duplicate=False,journal_seq=seq,stream_seq=stream_seq,version=version,
-            corrected=bool(corrected),processing_ms=(time.perf_counter()-start)*1000,snapshot=current)
+            corrected=bool(corrected),processing_ms=(time.perf_counter()-start)*1000,snapshot=current,
+            timing={**self.s.last_transaction,"append_ms":append_ms,"journal_read_ms":read_ms,"reduce_ms":reduce_ms})
 
     def match(self, match_id: str, version: int | None = None, as_of: str | None = None) -> dict:
         if version is not None:

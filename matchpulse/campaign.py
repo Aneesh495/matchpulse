@@ -52,7 +52,7 @@ def campaign(root:Path,out:Path,profile:str='diagnostic')->dict:
     snapshots=[];observations=[]
     for event in events:
         result=engine.ingest(event);snapshots.append(result['snapshot'])
-        observations.append(dict(event_id=event['event_id'],revision=event['revision'],processing_ms=result['processing_ms'],version=result['version'],mode='synthetic',upstream_age_seconds=None))
+        observations.append(dict(event_id=event['event_id'],revision=event['revision'],processing_ms=result['processing_ms'],version=result['version'],mode='synthetic',upstream_age_seconds=None,timing=result['timing']))
     engine.deal(later_deal())
     undisclosed={**later_deal(),'id':'demo-undisclosed','person_id':'demo-p8','disclosure':'undisclosed','guaranteed':None,'addons_upper':None}
     engine.deal(undisclosed)
@@ -75,7 +75,7 @@ def campaign(root:Path,out:Path,profile:str='diagnostic')->dict:
         for mid in fixture_ids:
             adapted={**event,'match_id':mid}
             result=interleaved.ingest(adapted);times.append(result['processing_ms'])
-            stress_rows.append(dict(match_id=mid,event_id=event['event_id'],revision=event['revision'],processing_ms=result['processing_ms'],retraction=event['kind']=='retract',version=result['version']))
+            stress_rows.append(dict(match_id=mid,event_id=event['event_id'],revision=event['revision'],processing_ms=result['processing_ms'],retraction=event['kind']=='retract',version=result['version'],timing=result['timing']))
     stress.close()
     (out/'LOAD.jsonl').write_text(''.join(canonical(v)+'\n' for v in stress_rows))
     ordered=sorted(times);p95=ordered[math_ceil(.95*len(ordered))-1]

@@ -32,7 +32,7 @@ def request(event):
     start=time.perf_counter()
     req=urllib.request.Request(base+'/api/ingest',data=canonical(event).encode(),headers={'Content-Type':'application/json'})
     with urllib.request.urlopen(req,timeout=10) as response:result=json.load(response)
-    return dict(match_id=event['match_id'],event_id=event['event_id'],revision=event['revision'],kind=event['kind'],roundtrip_ms=(time.perf_counter()-start)*1000,processing_ms=result['processing_ms'],version=result['version'],stream_seq=result['stream_seq'])
+    return dict(match_id=event['match_id'],event_id=event['event_id'],revision=event['revision'],kind=event['kind'],roundtrip_ms=(time.perf_counter()-start)*1000,processing_ms=result['processing_ms'],version=result['version'],stream_seq=result['stream_seq'],timing=result['timing'],transport=result['transport'])
 def stream(after):
     req=urllib.request.Request(base+'/api/events',headers={'Last-Event-ID':str(after)})
     with urllib.request.urlopen(req,timeout=5) as response:
@@ -62,11 +62,15 @@ try:
     with urllib.request.urlopen(base+'/api/state',timeout=10) as response:state=json.load(response)
     measured=[m for m in state['matches'] if m['id'].startswith('http-load-')]
     if len(measured)!=16 or any(m['score']!=[1,0] or m['version']!=37 for m in measured):raise RuntimeError('concurrent fixture final state mismatch')
+    for row in observations:
+        if row['timing']['status']!='committed' or min(row['transport'].values())<0:raise RuntimeError('invalid stage timing')
     ordered=sorted(r['roundtrip_ms'] for r in observations);p95=ordered[(95*len(ordered)+99)//100-1]
     (out/'HTTP.jsonl').write_text(''.join(canonical(r)+'\n' for r in observations))
     atomic_json(out/'STREAMS.json',dict(records=streams))
     atomic_json(out/'FINAL.json',state)
-    result=dict(profile='synthetic-loopback-http',source_commit=source,concurrent_callers=16,deliveries=len(observations),reconnecting_clients=len(streams),p95_roundtrip_ms=p95,processing_budget_ms=250,status='passed' if p95<=250 else 'failed',upstream_freshness='not measured; synthetic replay',actual_fixtures=0)
+    percentile=lambda values:sorted(values)[(95*len(values)+99)//100-1]
+    breakdown=dict(p95_queue_ms=percentile([r['transport']['queue_ms'] for r in observations]),p95_commit_ms=percentile([r['timing']['commit_ms'] for r in observations]),p95_reduction_ms=percentile([r['timing']['reduce_ms'] for r in observations]),max_commit_ms=max(r['timing']['commit_ms'] for r in observations))
+    result=dict(breakdown=breakdown,profile='synthetic-loopback-http',source_commit=source,concurrent_callers=16,deliveries=len(observations),reconnecting_clients=len(streams),p95_roundtrip_ms=p95,processing_budget_ms=250,status='passed' if p95<=250 else 'failed',upstream_freshness='not measured; synthetic replay',actual_fixtures=0)
     atomic_json(out/'REPORT.json',result);print(canonical(result))
     if result['status']!='passed':raise SystemExit(1)
 finally:

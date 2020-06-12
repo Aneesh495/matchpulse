@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import json
 from pathlib import Path
 import sqlite3
+import time
 from typing import Iterator
 from .contracts import ContractError, Envelope, canonical, instant
 
@@ -87,13 +88,20 @@ class Store:
 
     @contextmanager
     def transaction(self) -> Iterator[None]:
+        started=time.perf_counter()
+        self.last_transaction=dict(begin_ms=0.0,body_ms=0.0,commit_ms=0.0,rollback_ms=0.0,status='pending')
         self.db.execute("BEGIN IMMEDIATE")
+        body_started=time.perf_counter();self.last_transaction['begin_ms']=(body_started-started)*1000
         try:
             yield
+            commit_started=time.perf_counter();self.last_transaction['body_ms']=(commit_started-body_started)*1000
             self.db.execute("COMMIT")
+            self.last_transaction.update(commit_ms=(time.perf_counter()-commit_started)*1000,status='committed')
         except BaseException:
+            rollback_started=time.perf_counter()
             if self.db.in_transaction:
                 self.db.execute("ROLLBACK")
+            self.last_transaction.update(rollback_ms=(time.perf_counter()-rollback_started)*1000,status='rolled-back')
             raise
 
     def source(self, source_id: str) -> dict:

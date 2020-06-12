@@ -59,3 +59,13 @@ class StorageBudget(unittest.TestCase):
         self.assertEqual(s.db.execute('SELECT count(*) FROM metadata').fetchone()[0],0)
         with s.transaction():s.db.execute("INSERT INTO metadata VALUES('recovered','true')")
         s.close()
+
+class TransactionMetrics(unittest.TestCase):
+    def test_timings_preserve_commit_and_rollback_outcomes(self):
+        s=store()
+        with s.transaction():s.append(event())
+        self.assertEqual(s.last_transaction['status'],'committed')
+        self.assertGreaterEqual(s.last_transaction['commit_ms'],0)
+        with self.assertRaises(RuntimeError):
+            with s.transaction():raise RuntimeError('injected')
+        self.assertEqual(s.last_transaction['status'],'rolled-back');s.close()
