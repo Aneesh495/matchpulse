@@ -196,7 +196,22 @@ class Engine:
         sources=[dict(r) for r in self.s.db.execute("SELECT * FROM sources")]
         fixtures=[json.loads(r[0]) for r in self.s.db.execute("SELECT body FROM fixtures")]
         actual=[f for f in fixtures if f["mode"]!="synthetic"]
+        clock=self.knowledge_clock()
+        people=[r[0] for r in self.s.db.execute('SELECT id FROM persons')]
+        roster_counts=dict(active=0,loan=0,youth=0,reserve=0,unknown=0,ambiguous=0)
+        support_counts=dict(contract=0,availability=0,role=0)
+        for person in people:
+            context=self.context.view(person,clock,clock)
+            registrations=[f for f in context['facts'] if f['kind']=='registration']
+            assignments={(f['details']['team_id'],f['details']['registration_kind']) for f in registrations}
+            kind='ambiguous' if len(assignments)>1 else next(iter(assignments))[1] if assignments else 'unknown'
+            roster_counts[kind]+=1
+            for field in support_counts:
+                support_counts[field]+=int(field not in context['unsupported'])
+        actual_deals=sum(json.loads(r[0])['mode']=='archive' for r in self.s.db.execute('SELECT body FROM deals'))
         return dict(scope="Declared local demonstration slice",europe_complete=False,
+            roster=dict(persons=len(people),known_at=clock,by_registration=roster_counts,sourced_fields=support_counts),
+            actual_observed_transactions=actual_deals,training_eligible_transactions=0,
             denominators={"federations":55,"federation_source":"UEFA member association target, reconciliation unverified", "registered_divisions":None,"registered_players":None},
             fixtures=len(fixtures),actual_fixtures=len(actual),sources=sources,
             competitions=sorted({f.get("competition","unknown") for f in fixtures}),

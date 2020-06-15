@@ -47,3 +47,17 @@ class ContextImport(unittest.TestCase):
         e.seed({'context':[contract()]},publish_context=True)
         e.seed({'context':[contract()]},publish_context=True)
         self.assertEqual(len(s.stream()),1);s.close()
+
+class CoverageCounts(unittest.TestCase):
+    def test_registration_unknown_and_conflicting_denominators(self):
+        from matchpulse.engine import Engine
+        from matchpulse.demo import packet
+        from matchpulse.storage import Store
+        s=Store(':memory:');e=Engine(s);e.seed(packet())
+        self.assertEqual(e.coverage()['roster']['by_registration']['active'],24)
+        raw=packet()['context'][0]
+        e.append_context({**raw,'id':'conflicting-registration','details':dict(team_id='other',registration_kind='loan')})
+        coverage=e.coverage()
+        self.assertEqual(coverage['roster']['by_registration']['ambiguous'],1)
+        self.assertEqual(sum(coverage['roster']['by_registration'].values()),24)
+        self.assertEqual(coverage['training_eligible_transactions'],0);s.close()
