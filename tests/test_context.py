@@ -61,3 +61,18 @@ class CoverageCounts(unittest.TestCase):
         self.assertEqual(coverage['roster']['by_registration']['ambiguous'],1)
         self.assertEqual(sum(coverage['roster']['by_registration'].values()),24)
         self.assertEqual(coverage['training_eligible_transactions'],0);s.close()
+
+class PacketContracts(unittest.TestCase):
+    def test_invalid_source_and_duplicate_roster_roll_back(self):
+        import copy
+        from matchpulse.engine import Engine
+        from matchpulse.demo import packet
+        from matchpulse.storage import Store
+        s=Store(':memory:');e=Engine(s)
+        p=packet();p['sources'][0]['terms_url']='javascript:alert(1)'
+        with self.assertRaises(ContractError):e.seed(p)
+        p=packet();p['fixtures'][0]['players'].append(copy.deepcopy(p['fixtures'][0]['players'][0]))
+        with self.assertRaises(ContractError):e.seed(p)
+        self.assertEqual(s.db.execute('SELECT count(*) FROM sources').fetchone()[0],0)
+        with self.assertRaises(ContractError):e.seed({'ignored_records':[]})
+        s.close()

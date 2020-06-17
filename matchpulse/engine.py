@@ -1,9 +1,9 @@
 """Domain transaction boundary: journal, derived versions, and outbox commit together."""
 from __future__ import annotations
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 import json
 import time
-from .contracts import ContractError, Envelope, canonical, identifier, instant
+from .contracts import ContractError, Envelope, MODES, ROLES, canonical, finite, identifier, instant
 from .identity import Identity
 from .context import ContextLedger
 from .ratings import RatingReducer
@@ -18,16 +18,43 @@ class Engine:
         self.context = ContextLedger(store)
 
     def seed(self, packet: dict, publish_context: bool = False) -> dict:
+        if not isinstance(packet,dict) or set(packet)-{'sources','fixtures','persons','context'}:
+            raise ContractError('unsupported import packet fields')
+        for key in ('sources','fixtures','persons','context'):
+            if not isinstance(packet.get(key,[]),list) or len(packet.get(key,[]))>10000:
+                raise ContractError('packet collections must be bounded lists')
         context_inserted = 0
         with self.s.transaction():
             for source in packet.get("sources", []):
+                identifier(source.get('id'))
+                if source.get('mode') not in MODES or type(source.get('redistribution')) is not bool:
+                    raise ContractError('invalid source mode or rights declaration')
+                if not isinstance(source.get('name'),str) or not 0<len(source['name'])<=200:
+                    raise ContractError('invalid source name')
+                if not isinstance(source.get('terms_url'),str) or not source['terms_url'].startswith('https://') or len(source['terms_url'])>2048:
+                    raise ContractError('source needs a bounded HTTPS terms URL')
+                if source.get('freshness_seconds') is not None:finite(source['freshness_seconds'],.001,2592000,'source freshness SLO')
                 existing=self.s.db.execute("SELECT * FROM sources WHERE id=?", (source["id"],)).fetchone()
                 values=(source["id"],source["mode"],source["name"],source["terms_url"],int(source["redistribution"]),source.get("freshness_seconds"),instant(source["acquired_at"]))
                 if existing and tuple(existing) != values:
                     raise ContractError("source terms collision")
                 self.s.db.execute("INSERT OR IGNORE INTO sources VALUES(?,?,?,?,?,?,?)",values)
             for fixture in packet.get("fixtures", []):
-                identifier(fixture["id"])
+                identifier(fixture['id'])
+                for key in ('home_id','away_id'):identifier(fixture.get(key),key)
+                if fixture['home_id']==fixture['away_id'] or fixture.get('mode') not in MODES:
+                    raise ContractError('invalid fixture teams or mode')
+                for key in ('home','away','competition'):
+                    if not isinstance(fixture.get(key),str) or not 0<len(fixture[key])<=200:raise ContractError('invalid fixture name')
+                try:date.fromisoformat(fixture['date'])
+                except (ValueError,TypeError,KeyError) as exc:raise ContractError('fixture needs an ISO date') from exc
+                if not isinstance(fixture.get('players'),list) or not 1<=len(fixture['players'])<=1000:
+                    raise ContractError('fixture needs a bounded roster')
+                ids=set()
+                for person in fixture['players']:
+                    if person.get('id') in ids or person.get('team_id') not in {fixture['home_id'],fixture['away_id']} or person.get('role') not in ROLES:
+                        raise ContractError('duplicate person or invalid team/role in roster')
+                    ids.add(person['id'])
                 for p in fixture["players"]:
                     self.identity.add_person(p)
                 existing=self.s.db.execute("SELECT body FROM fixtures WHERE id=?",(fixture["id"],)).fetchone()
