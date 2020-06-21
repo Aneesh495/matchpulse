@@ -21,7 +21,7 @@ class Engine:
         if not isinstance(packet,dict) or set(packet)-{'sources','fixtures','persons','context'}:
             raise ContractError('unsupported import packet fields')
         for key in ('sources','fixtures','persons','context'):
-            if not isinstance(packet.get(key,[]),list) or len(packet.get(key,[]))>10000:
+            if not isinstance(packet.get(key,[]),list) or len(packet.get(key,[]))>10000 or not all(isinstance(v,dict) for v in packet.get(key,[])):
                 raise ContractError('packet collections must be bounded lists')
         context_inserted = 0
         with self.s.transaction():
@@ -35,12 +35,12 @@ class Engine:
                     raise ContractError('source needs a bounded HTTPS terms URL')
                 if source.get('freshness_seconds') is not None:finite(source['freshness_seconds'],.001,2592000,'source freshness SLO')
                 existing=self.s.db.execute("SELECT * FROM sources WHERE id=?", (source["id"],)).fetchone()
-                values=(source["id"],source["mode"],source["name"],source["terms_url"],int(source["redistribution"]),source.get("freshness_seconds"),instant(source["acquired_at"]))
+                values=(source["id"],source["mode"],source["name"],source["terms_url"],int(source["redistribution"]),source.get("freshness_seconds"),instant(source.get("acquired_at")))
                 if existing and tuple(existing) != values:
                     raise ContractError("source terms collision")
                 self.s.db.execute("INSERT OR IGNORE INTO sources VALUES(?,?,?,?,?,?,?)",values)
             for fixture in packet.get("fixtures", []):
-                identifier(fixture['id'])
+                identifier(fixture.get('id'))
                 for key in ('home_id','away_id'):identifier(fixture.get(key),key)
                 if fixture['home_id']==fixture['away_id'] or fixture.get('mode') not in MODES:
                     raise ContractError('invalid fixture teams or mode')
@@ -48,7 +48,7 @@ class Engine:
                     if not isinstance(fixture.get(key),str) or not 0<len(fixture[key])<=200:raise ContractError('invalid fixture name')
                 try:date.fromisoformat(fixture['date'])
                 except (ValueError,TypeError,KeyError) as exc:raise ContractError('fixture needs an ISO date') from exc
-                if not isinstance(fixture.get('players'),list) or not 1<=len(fixture['players'])<=1000:
+                if not isinstance(fixture.get('players'),list) or not 1<=len(fixture['players'])<=1000 or not all(isinstance(v,dict) for v in fixture['players']):
                     raise ContractError('fixture needs a bounded roster')
                 ids=set()
                 for person in fixture['players']:

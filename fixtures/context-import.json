@@ -1,0 +1,41 @@
+{
+  "sources": [
+    {
+      "id": "authored-cc0",
+      "mode": "synthetic",
+      "name": "Authored Matchpulse diagnostic fixture",
+      "terms_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "redistribution": true,
+      "freshness_seconds": null,
+      "acquired_at": "2024-06-08T18:00:00+00:00"
+    }
+  ],
+  "persons": [
+    {
+      "id": "demo-p24",
+      "name": "Emil Strand",
+      "role": "ST",
+      "team_id": "athletic",
+      "birth_date": "1999-03-12",
+      "country": null,
+      "synthetic_prior_eur": 28000000
+    }
+  ],
+  "context": [
+    {
+      "id": "availability-demo-p24",
+      "revision": 1,
+      "person_id": "demo-p24",
+      "kind": "availability",
+      "valid_from": "2024-06-08T18:00:00+00:00",
+      "valid_to": "2024-06-09T00:00:00Z",
+      "known_at": "2024-06-08T18:00:00+00:00",
+      "source_id": "authored-cc0",
+      "source_url": "https://example.org/fictional-availability",
+      "confidence": 1.0,
+      "details": {
+        "status": "available"
+      }
+    }
+  ]
+}
