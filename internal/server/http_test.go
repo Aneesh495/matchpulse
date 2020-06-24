@@ -132,6 +132,34 @@ func TestActualWorkerReplayCSVAndReconnect(t *testing.T) {
 	if resp.StatusCode != 200 || !strings.Contains(string(raw), `"context"`) {
 		t.Fatal("comparison lacks sourced context")
 	}
+	packetBytes, err := os.ReadFile("fixtures/context-import.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var contextPacket struct {
+		Context []json.RawMessage `json:"context"`
+	}
+	if err = json.Unmarshal(packetBytes, &contextPacket); err != nil {
+		t.Fatal(err)
+	}
+	resp, err = http.Post(server.URL+"/api/context", "application/json", strings.NewReader(string(contextPacket.Context[0])))
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if resp.StatusCode != 200 {
+		t.Fatal("context update rejected", string(raw))
+	}
+	resp, err = http.Get(server.URL + "/api/players/demo-p24/history?valid_at=2024-06-08T19:00:00Z")
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, _ = io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if !strings.Contains(string(raw), `"status":"available"`) {
+		t.Fatal("sourced availability missing at match valid time")
+	}
 	worker.stop()
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

@@ -179,6 +179,7 @@ class Engine:
 
     def history(self, person_id: str, cutoff: str | None = None, valid_at: str | None = None) -> dict:
         identifier(person_id)
+        if not self.s.db.execute('SELECT 1 FROM persons WHERE id=?',(person_id,)).fetchone():raise ContractError('unknown canonical person')
         args = [person_id]
         condition = ""
         if cutoff:
