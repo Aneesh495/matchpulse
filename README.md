@@ -26,6 +26,8 @@ Original masked recurrent and dense distributional models train from random init
 ```sh
 make demo
 make train RUN_ID=training-001
+# Recover an interrupted existing run:
+# make train RUN_ID=training-001 RESUME=1
 python3 -m matchpulse.verify_training evidence/training-001
 make acceptance RUN_ID=engineering-001 PROFILE=diagnostic
 make verify EVIDENCE=evidence/engineering-001
@@ -39,3 +41,5 @@ Use a new run ID each time. The engineering pilot measured 1.3653 ms p95 backend
 `make acceptance RUN_ID=full-001 PROFILE=full`, `make data` and `make release` return nonzero while required acquisition and research work is unavailable. They never silently substitute a smaller successful workload. Operator-authorized local archive files can use [the importer](scripts/import-archive.py); external source rights do not inherit the code license.
 
 [Architecture and 12 editable diagrams](docs/ARCHITECTURE.md) · [Schema and numerical contracts](docs/CONTRACTS.md) · [Model card](docs/MODEL_CARD.md) · [Source rights](docs/DATA_RIGHTS.md) · [Evidence format](docs/ARTIFACTS.md) · [Reproduction](docs/REPRODUCIBILITY.md) · [Recovery](docs/RECOVERY.md) · [Claim index](docs/CLAIMS.md) · [Architecture decisions](docs/adr/001-storage.md)
+
+[Operator paths](docs/OPERATIONS.md) cover source context imports, historical value comparison, UTC cutoffs, complete CSV provenance and exact epoch resume. The drawer now distinguishes contract/registration/availability support from journal events and preserves source conflicts. All shipped examples remain fictional.

@@ -28,3 +28,5 @@ The browser requests a snapshot with its global sequence, then consumes durable 
 | [Testing](diagrams/12-testing.svg) | Independent checks and negative controls | [controls](../matchpulse/negative_controls.py) |
 
 Each SVG has an editable Graphviz source with the same basename. These diagrams describe the implemented local profile. None represents an acquired licensed provider, distributed deployment, or full campaign.
+
+The [source-context path](diagrams/13-context.svg) owns valid/known intervals and conflicts. The [epoch-recovery path](diagrams/14-resume.svg) binds frozen bytes, optimizer/RNG state and exact continuation. Both have editable DOT sources.
