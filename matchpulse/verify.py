@@ -16,6 +16,18 @@ def require(condition:bool,message:str)->None:
     if not condition:raise VerificationError(message)
 
 
+def replay_equal(actual,expected)->bool:
+    """Keep structure exact; permit at most two binary64 ULPs across libm builds."""
+    if type(actual) is not type(expected):return False
+    if isinstance(actual,dict):
+        return actual.keys()==expected.keys() and all(replay_equal(actual[k],expected[k]) for k in actual)
+    if isinstance(actual,list):
+        return len(actual)==len(expected) and all(replay_equal(a,b) for a,b in zip(actual,expected))
+    if isinstance(actual,float):
+        return math.isfinite(actual) and math.isfinite(expected) and abs(actual-expected)<=2*max(math.ulp(actual),math.ulp(expected))
+    return actual==expected
+
+
 def json_file(path:Path):
     try:return json.loads(path.read_text(),parse_constant=lambda x:(_ for _ in ()).throw(VerificationError('nonfinite JSON')))
     except (OSError,json.JSONDecodeError) as exc:raise VerificationError(str(exc)) from exc
@@ -124,7 +136,7 @@ def verify(directory:Path,source:Path,expected_commit:str)->dict:
     replay=subprocess.run([sys.executable,'-m','matchpulse.audit_replay',str(directory.resolve())],cwd=source,text=True,capture_output=True,timeout=20)
     require(replay.returncode==0,'saved-engine replay failed: '+replay.stderr[-300:])
     rebuilt=json.loads(replay.stdout)
-    require(rebuilt==final,'saved-engine bounded replay differs from evidence')
+    require(replay_equal(rebuilt,final),'saved-engine bounded replay differs from evidence')
     return dict(status='passed',profile='diagnostic',full_acceptance='blocked',source_commit=expected_commit,events=len(events),p95_processing_ms=p95,semantic_checks=['freshness','disclosure','future-feature','model-id','score-retractions','exposure','saved-engine-replay'])
 
 
