@@ -22,5 +22,5 @@ with tarfile.open(a.output,'x:gz') as archive:
     for path in (root/'dist').rglob('*'):
         if path.is_file():archive.add(path,arcname='matchpulse/'+str(path.relative_to(root)),recursive=False)
     content=json.dumps(dict(kind='diagnostic-source-package',source_commit=commit,full_acceptance='blocked'),sort_keys=True).encode()
-    info=tarfile.TarInfo('matchpulse/PACKAGE.json');info.size=len(content);archive.addfile(info,io.BytesIO(content))
+    info=tarfile.TarInfo('matchpulse/MATCHPULSE_PACKAGE.json');info.size=len(content);archive.addfile(info,io.BytesIO(content))
 print(a.output.resolve())
